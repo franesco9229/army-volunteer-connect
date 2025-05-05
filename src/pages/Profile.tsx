@@ -13,13 +13,21 @@ import {
   mockCurrentUser
 } from '@/data/mockData';
 import { Skill, SkillLevel } from '@/types';
-import { User, Mail, Edit } from 'lucide-react';
+import { User, Mail, Edit, Save, X } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
 
 export default function Profile() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileData, setProfileData] = useState({
+    name: mockCurrentUser.name,
+    email: mockCurrentUser.email,
+  });
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -48,6 +56,35 @@ export default function Profile() {
     }
   };
 
+  const handleProfileEdit = () => {
+    setIsEditingProfile(true);
+  };
+
+  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setProfileData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleProfileSave = () => {
+    // In a real app, this would make an API call to update the user profile
+    toast.success("Profile updated successfully");
+    setIsEditingProfile(false);
+    // Since we're using mock data, we would normally update the state here
+    // For demonstration purposes, we'll just close the edit mode
+  };
+
+  const handleProfileCancel = () => {
+    // Reset to original values
+    setProfileData({
+      name: mockCurrentUser.name,
+      email: mockCurrentUser.email,
+    });
+    setIsEditingProfile(false);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8 animate-fade-in">
@@ -64,33 +101,70 @@ export default function Profile() {
                 </Avatar>
                 
                 <div className="space-y-4 text-center md:text-left flex-1">
-                  <div>
-                    <h2 className="text-2xl font-bold">{mockCurrentUser.name}</h2>
-                    <div className="flex items-center justify-center md:justify-start mt-1 text-muted-foreground">
-                      <Mail className="h-4 w-4 mr-2" />
-                      <span>{mockCurrentUser.email}</span>
+                  {isEditingProfile ? (
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Name</Label>
+                        <Input 
+                          id="name" 
+                          name="name" 
+                          value={profileData.name} 
+                          onChange={handleProfileChange} 
+                          className="mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input 
+                          id="email" 
+                          name="email" 
+                          value={profileData.email} 
+                          onChange={handleProfileChange} 
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="flex gap-2 justify-center md:justify-start">
+                        <Button onClick={handleProfileSave} className="bg-sta-purple hover:bg-sta-purple-dark">
+                          <Save className="h-4 w-4 mr-2" />
+                          Save
+                        </Button>
+                        <Button variant="outline" onClick={handleProfileCancel}>
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                    {skills.slice(0, 3).map((skill) => (
-                      <SkillBadge 
-                        key={skill.id} 
-                        name={skill.name} 
-                        level={skill.level} 
-                      />
-                    ))}
-                    {skills.length > 3 && (
-                      <span className="text-sm text-muted-foreground">
-                        +{skills.length - 3} more
-                      </span>
-                    )}
-                  </div>
-                  
-                  <Button variant="outline" className="mt-4">
-                    <Edit className="h-4 w-4 mr-2" />
-                    <span>Edit Profile</span>
-                  </Button>
+                  ) : (
+                    <>
+                      <div>
+                        <h2 className="text-2xl font-bold">{profileData.name}</h2>
+                        <div className="flex items-center justify-center md:justify-start mt-1 text-muted-foreground">
+                          <Mail className="h-4 w-4 mr-2" />
+                          <span>{profileData.email}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                        {skills.slice(0, 3).map((skill) => (
+                          <SkillBadge 
+                            key={skill.id} 
+                            name={skill.name} 
+                            level={skill.level} 
+                          />
+                        ))}
+                        {skills.length > 3 && (
+                          <span className="text-sm text-muted-foreground">
+                            +{skills.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                      
+                      <Button variant="outline" className="mt-4" onClick={handleProfileEdit}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        <span>Edit Profile</span>
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
