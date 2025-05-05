@@ -1,0 +1,92 @@
+
+import React from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Opportunity } from '@/types';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { SkillBadge } from '@/components/ui/SkillBadge';
+import { Clock, Building, Calendar } from 'lucide-react';
+
+interface OpportunityCardProps {
+  opportunity: Opportunity;
+  onApply?: (opportunityId: string) => void;
+  hasApplied?: boolean;
+}
+
+export function OpportunityCard({ 
+  opportunity, 
+  onApply,
+  hasApplied = false
+}: OpportunityCardProps) {
+  const { 
+    id, 
+    title, 
+    description, 
+    client, 
+    requiredSkills, 
+    timeCommitment, 
+    projectDuration, 
+    status, 
+    postedDate 
+  } = opportunity;
+
+  const handleApply = () => {
+    if (onApply) {
+      onApply(id);
+    }
+  };
+
+  const isOpen = status === 'Open';
+  
+  return (
+    <Card className="card-transition h-full flex flex-col">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-xl">{title}</CardTitle>
+          <StatusBadge status={status} />
+        </div>
+        <div className="flex items-center text-sm text-muted-foreground mt-1">
+          <Building className="h-4 w-4 mr-1" />
+          <span>{client}</span>
+        </div>
+      </CardHeader>
+      <CardContent className="py-2 flex-grow">
+        <p className="text-sm mb-4">{description}</p>
+        
+        <div className="space-y-3">
+          <div className="flex items-center text-sm">
+            <Clock className="h-4 w-4 mr-2 text-sta-purple" />
+            <span>{timeCommitment}</span>
+          </div>
+          <div className="flex items-center text-sm">
+            <Calendar className="h-4 w-4 mr-2 text-sta-purple" />
+            <span>{projectDuration}</span>
+          </div>
+        </div>
+        
+        <div className="mt-4">
+          <p className="text-sm font-medium mb-2">Required Skills:</p>
+          <div className="flex flex-wrap gap-2">
+            {requiredSkills.map((skill) => (
+              <SkillBadge key={skill} name={skill} />
+            ))}
+          </div>
+        </div>
+      </CardContent>
+      <CardFooter className="pt-2 flex items-center justify-between">
+        <div className="text-xs text-muted-foreground">
+          Posted: {new Date(postedDate).toLocaleDateString()}
+        </div>
+        {isOpen && (
+          <Button 
+            onClick={handleApply} 
+            disabled={hasApplied}
+            variant={hasApplied ? "outline" : "default"}
+          >
+            {hasApplied ? 'Applied' : 'Apply Now'}
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}

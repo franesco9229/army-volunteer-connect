@@ -1,0 +1,39 @@
+
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  description?: string;
+  className?: string;
+}
+
+export function StatCard({ 
+  title, 
+  value, 
+  icon, 
+  description, 
+  className 
+}: StatCardProps) {
+  return (
+    <Card className={cn("card-transition", className)}>
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
+            <h4 className="text-3xl font-bold mt-1">{value}</h4>
+            {description && (
+              <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            )}
+          </div>
+          <div className="rounded-full p-2 bg-sta-light text-sta-purple-darker">
+            {icon}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
