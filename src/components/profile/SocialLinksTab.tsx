@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,7 +59,7 @@ export function SocialLinksTab({ initialLinks = [] }: SocialLinksTabProps) {
 
   const getPlatformIcon = (platform: string) => {
     const option = platformOptions.find(p => p.label.toLowerCase() === platform.toLowerCase());
-    return option ? option.icon : LinkedIn;
+    return option ? option.icon : Linkedin;
   };
 
   return (
