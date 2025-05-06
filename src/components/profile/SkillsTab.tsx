@@ -7,6 +7,7 @@ import { SkillLevelSelector } from '@/components/ui/SkillLevelSelector';
 import { SkillBadge } from '@/components/ui/SkillBadge';
 import { Plus } from 'lucide-react';
 import { Skill, SkillLevel } from '@/types';
+import { toast } from '@/components/ui/sonner';
 
 interface SkillsTabProps {
   skills: Skill[];
@@ -22,6 +23,15 @@ export function SkillsTab({ skills, onSkillUpdate, onAddSkill }: SkillsTabProps)
     if (newSkill.trim()) {
       onAddSkill(newSkill.trim());
       setNewSkill('');
+      toast.success(`Added "${newSkill}" to your skills`);
+    } else {
+      toast.error("Please enter a skill name");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleAddSkill();
     }
   };
 
@@ -48,6 +58,7 @@ export function SkillsTab({ skills, onSkillUpdate, onAddSkill }: SkillsTabProps)
                   placeholder="Add a new skill..."
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="flex-1"
                 />
                 <Button onClick={handleAddSkill} className="bg-sta-purple hover:bg-sta-purple-dark">
@@ -68,12 +79,18 @@ export function SkillsTab({ skills, onSkillUpdate, onAddSkill }: SkillsTabProps)
           ) : (
             // View mode
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {skills.map((skill) => (
-                <div key={skill.id} className="flex justify-between items-center p-3 border rounded-md">
-                  <span className="font-medium">{skill.name}</span>
-                  <SkillBadge name="" level={skill.level} />
-                </div>
-              ))}
+              {skills.length === 0 ? (
+                <p className="text-muted-foreground col-span-2 text-center py-8">
+                  No skills added yet. Click 'Edit Skills' to add your first skill.
+                </p>
+              ) : (
+                skills.map((skill) => (
+                  <div key={skill.id} className="flex justify-between items-center p-3 border rounded-md">
+                    <span className="font-medium">{skill.name}</span>
+                    <SkillBadge name="" level={skill.level} />
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>

@@ -7,7 +7,10 @@ import {
   Eye, 
   Shield, 
   Sliders,
-  LogOut
+  LogOut,
+  Moon,
+  Sun,
+  Link
 } from 'lucide-react';
 import { 
   Card, 
@@ -37,9 +40,13 @@ import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
+import { useTheme } from "@/components/ThemeProvider";
+import { SocialLinksTab } from "@/components/profile/SocialLinksTab";
 
 const Settings = () => {
   const { toast } = useToast();
+  const { theme, toggleTheme } = useTheme();
+  
   const profileForm = useForm({
     defaultValues: {
       name: "John Doe",
@@ -95,6 +102,10 @@ const Settings = () => {
             <TabsTrigger value="account" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
               <span>Account</span>
+            </TabsTrigger>
+            <TabsTrigger value="social" className="flex items-center gap-2">
+              <Link className="h-4 w-4" />
+              <span>Social</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
@@ -275,6 +286,11 @@ const Settings = () => {
               </Card>
             </div>
           </TabsContent>
+          
+          {/* Social Links Tab */}
+          <TabsContent value="social">
+            <SocialLinksTab />
+          </TabsContent>
 
           {/* Notifications Tab */}
           <TabsContent value="notifications">
@@ -364,6 +380,23 @@ const Settings = () => {
                 <div className="space-y-6">
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Appearance</h3>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">Dark Mode</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Switch between light and dark mode
+                        </p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Sun className="h-5 w-5 text-muted-foreground" />
+                        <Switch 
+                          checked={theme === 'dark'}
+                          onCheckedChange={toggleTheme} 
+                        />
+                        <Moon className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    </div>
                     
                     <div className="flex items-center justify-between">
                       <div>

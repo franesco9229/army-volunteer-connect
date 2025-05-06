@@ -7,7 +7,10 @@ import {
   Briefcase, 
   FileText, 
   Settings,
-  LogOut
+  LogOut,
+  LinkedIn,
+  Facebook,
+  MessageCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -63,9 +66,11 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="flex items-center p-4">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-sta-purple rounded-full flex items-center justify-center">
-            <span className="text-white font-bold">STA</span>
-          </div>
+          <img 
+            src="/lovable-uploads/a6385990-4653-4240-a5b2-5473c37df449.png" 
+            alt="Scottish Tech Army" 
+            className="h-8 w-auto"
+          />
           <span className="font-bold text-lg">Volunteer App</span>
         </div>
         <SidebarTrigger className="ml-auto md:hidden" />
