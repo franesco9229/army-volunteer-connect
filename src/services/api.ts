@@ -1,36 +1,55 @@
 
-// This is a placeholder for AWS API Gateway integration
-// In a production app, you would use AWS SDK or Axios to interact with API Gateway
+// Integration with AWS API Gateway and related services
+import { Auth } from './auth';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://api.example.com';
+// Base configuration for AWS services
+const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.example.com';
+const REGION = process.env.REACT_APP_AWS_REGION || 'eu-west-2';
 
 interface ApiOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   body?: any;
   headers?: Record<string, string>;
+  requiresAuth?: boolean;
 }
 
 export const ApiService = {
-  // Generic API call function
+  // Generic API call function that integrates with AWS API Gateway
   callApi: async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
-    const { method = 'GET', body, headers = {} } = options;
+    const { method = 'GET', body, headers = {}, requiresAuth = true } = options;
     
-    // In a real implementation, this would include authentication headers from AWS Cognito
+    let authHeaders = {};
+    
+    // Add Authorization header with Cognito JWT token if authentication is required
+    if (requiresAuth) {
+      try {
+        const token = await Auth.getCurrentSession();
+        authHeaders = {
+          'Authorization': `Bearer ${token}`
+        };
+      } catch (error) {
+        console.error('Error getting authentication token:', error);
+        throw new Error('Authentication required to access this resource');
+      }
+    }
+    
     const defaultHeaders = {
       'Content-Type': 'application/json',
-      // Include authorization token from Cognito
-      // 'Authorization': `Bearer ${await getAuthToken()}`
     };
     
     try {
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
         method,
-        headers: { ...defaultHeaders, ...headers },
+        headers: { ...defaultHeaders, ...authHeaders, ...headers },
         body: body ? JSON.stringify(body) : undefined
       });
       
       if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(
+          errorData?.message || 
+          `API request failed with status ${response.status}`
+        );
       }
       
       return await response.json();
@@ -41,42 +60,98 @@ export const ApiService = {
   },
   
   // Convenient wrappers for common HTTP methods
-  get: <T>(endpoint: string, headers?: Record<string, string>): Promise<T> => {
-    return ApiService.callApi<T>(endpoint, { method: 'GET', headers });
+  get: <T>(endpoint: string, options?: Omit<ApiOptions, 'method' | 'body'>): Promise<T> => {
+    return ApiService.callApi<T>(endpoint, { ...options, method: 'GET' });
   },
   
-  post: <T>(endpoint: string, body: any, headers?: Record<string, string>): Promise<T> => {
-    return ApiService.callApi<T>(endpoint, { method: 'POST', body, headers });
+  post: <T>(endpoint: string, body: any, options?: Omit<ApiOptions, 'method' | 'body'>): Promise<T> => {
+    return ApiService.callApi<T>(endpoint, { ...options, method: 'POST', body });
   },
   
-  put: <T>(endpoint: string, body: any, headers?: Record<string, string>): Promise<T> => {
-    return ApiService.callApi<T>(endpoint, { method: 'PUT', body, headers });
+  put: <T>(endpoint: string, body: any, options?: Omit<ApiOptions, 'method' | 'body'>): Promise<T> => {
+    return ApiService.callApi<T>(endpoint, { ...options, method: 'PUT', body });
   },
   
-  delete: <T>(endpoint: string, headers?: Record<string, string>): Promise<T> => {
-    return ApiService.callApi<T>(endpoint, { method: 'DELETE', headers });
+  delete: <T>(endpoint: string, options?: Omit<ApiOptions, 'method' | 'body'>): Promise<T> => {
+    return ApiService.callApi<T>(endpoint, { ...options, method: 'DELETE' });
   }
 };
 
-// Example API endpoints that would connect to AWS API Gateway
+// API endpoints for volunteering opportunities
 export const VolunteeringApi = {
-  getOpportunities: () => ApiService.get('/opportunities'),
-  applyForOpportunity: (opportunityId: string, userId: string) => 
-    ApiService.post('/applications', { opportunityId, userId }),
+  // Get all available opportunities
+  getOpportunities: (filters?: any) => 
+    ApiService.get('/opportunities', { 
+      requiresAuth: true,
+      headers: filters ? { 'X-Filter-Params': JSON.stringify(filters) } : {}
+    }),
+  
+  // Apply for a specific opportunity
+  applyForOpportunity: (opportunityId: string, userId: string, additionalData?: any) => 
+    ApiService.post('/applications', { 
+      opportunityId, 
+      userId,
+      ...additionalData,
+      metadata: {
+        source: 'web-platform',
+        timestamp: new Date().toISOString()
+      }
+    }),
+  
+  // Get applications for a specific user
   getUserApplications: (userId: string) => 
     ApiService.get(`/users/${userId}/applications`),
+  
+  // Get volunteering history for a specific user
   getUserVolunteeringHistory: (userId: string) => 
     ApiService.get(`/users/${userId}/history`)
 };
 
-// Example integration with Jira for volunteer assignments
+// Integration with Jira for volunteer assignments
 export const JiraApi = {
+  // Get tasks assigned to a specific volunteer
   getAssignedTasks: (userId: string) => 
-    ApiService.get(`/jira/tasks?userId=${userId}`)
+    ApiService.get(`/jira/tasks`, {
+      headers: {
+        'X-User-Id': userId
+      }
+    }),
+    
+  // Update task status in Jira
+  updateTaskStatus: (taskId: string, status: string) =>
+    ApiService.put(`/jira/tasks/${taskId}/status`, { status }),
+    
+  // Log time spent on a task
+  logTimeSpent: (taskId: string, timeSpentSeconds: number, comment?: string) =>
+    ApiService.post(`/jira/tasks/${taskId}/worklog`, {
+      timeSpentSeconds,
+      comment
+    })
 };
 
-// Example integration with HubSpot for CRM
+// Integration with HubSpot for CRM
 export const HubSpotApi = {
+  // Get user profile from HubSpot
   getUserProfile: (userId: string) => 
-    ApiService.get(`/hubspot/contacts?userId=${userId}`)
+    ApiService.get(`/hubspot/contacts`, {
+      headers: {
+        'X-User-Id': userId
+      }
+    }),
+    
+  // Update user profile in HubSpot
+  updateUserProfile: (userId: string, profileData: any) =>
+    ApiService.put(`/hubspot/contacts`, {
+      userId,
+      ...profileData
+    }),
+    
+  // Track user engagement with the platform
+  trackEngagement: (userId: string, activityType: string, details?: any) =>
+    ApiService.post(`/hubspot/engagement`, {
+      userId,
+      activityType,
+      details,
+      timestamp: new Date().toISOString()
+    })
 };

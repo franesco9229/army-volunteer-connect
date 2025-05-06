@@ -11,9 +11,52 @@ import {
   applyForOpportunity,
   mockCurrentUser
 } from '@/data/mockData';
-import { Opportunity, Application, OpportunityStatus } from '@/types';
-import { Search, Filter, Check } from 'lucide-react';
+import { Opportunity, Application, OpportunityStatus, Skill, SkillLevel } from '@/types';
+import { Search, Filter, Check, X } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { 
+  Sheet, 
+  SheetContent, 
+  SheetDescription, 
+  SheetHeader, 
+  SheetTitle, 
+  SheetTrigger,
+  SheetFooter,
+  SheetClose
+} from '@/components/ui/sheet';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+// Skills and experience levels for filtering
+const SKILL_OPTIONS = [
+  "Web Development", 
+  "UX/UI Design", 
+  "Data Analysis", 
+  "Project Management", 
+  "Marketing",
+  "Content Writing"
+];
+
+const EXPERIENCE_LEVELS = [
+  { label: "Any Level", value: "any" },
+  { label: "Beginner", value: "beginner" },
+  { label: "Intermediate", value: "intermediate" },
+  { label: "Advanced", value: "advanced" }
+];
+
+const AVAILABILITY_OPTIONS = [
+  { label: "Any Time", value: "any" },
+  { label: "Evenings", value: "evenings" },
+  { label: "Weekends", value: "weekends" },
+  { label: "Full-time", value: "fulltime" }
+];
 
 export default function Opportunities() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -21,6 +64,12 @@ export default function Opportunities() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
+  // Filter states
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [experienceLevel, setExperienceLevel] = useState<string>("any");
+  const [availability, setAvailability] = useState<string>("any");
 
   // Get IDs of opportunities the user has already applied to
   const appliedOpportunityIds = applications.map(app => app.opportunityId);
@@ -48,8 +97,25 @@ export default function Opportunities() {
 
   const handleApply = async (opportunityId: string) => {
     try {
+      // Prepare data for AWS backend integration
+      const applicationData = {
+        userId: mockCurrentUser.id,
+        opportunityId: opportunityId,
+        timestamp: new Date().toISOString(),
+        // Additional fields that would be sent to AWS API Gateway
+        metadata: {
+          source: 'web-platform',
+          userAgent: navigator.userAgent,
+        }
+      };
+      
+      console.log("Sending application data to backend:", applicationData);
+      
+      // This will be replaced with actual AWS API call
       await applyForOpportunity(mockCurrentUser.id, opportunityId);
+      
       toast.success("Application submitted successfully!");
+      
       // Refresh applications data
       const newApplications = await fetchUserApplications(mockCurrentUser.id);
       setApplications(newApplications);
@@ -59,8 +125,23 @@ export default function Opportunities() {
     }
   };
 
-  // Filter opportunities based on search term and status
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills(prev => 
+      prev.includes(skill)
+        ? prev.filter(s => s !== skill)
+        : [...prev, skill]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedSkills([]);
+    setExperienceLevel("any");
+    setAvailability("any");
+  };
+
+  // Filter opportunities based on search term, filters, and status
   const filteredOpportunities = opportunities.filter(opp => {
+    // Text search filter
     const matchesSearch = 
       opp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       opp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -69,10 +150,23 @@ export default function Opportunities() {
         skill.toLowerCase().includes(searchTerm.toLowerCase())
       );
     
-    if (activeTab === 'all') return matchesSearch;
-    if (activeTab === 'open') return matchesSearch && opp.status === OpportunityStatus.Open;
+    // Skills filter
+    const matchesSkills = selectedSkills.length === 0 || 
+      selectedSkills.some(skill => 
+        opp.requiredSkills.includes(skill)
+      );
+      
+    // Experience level filter (this would be more precise with real data)
+    const matchesExperience = experienceLevel === "any" || true; // Placeholder until data includes experience level
+    
+    // Availability filter (this would be more precise with real data)
+    const matchesAvailability = availability === "any" || true; // Placeholder until data includes availability
+    
+    // Tab filters
+    if (activeTab === 'all') return matchesSearch && matchesSkills && matchesExperience && matchesAvailability;
+    if (activeTab === 'open') return matchesSearch && matchesSkills && matchesExperience && matchesAvailability && opp.status === OpportunityStatus.Open;
     if (activeTab === 'applied') {
-      return matchesSearch && appliedOpportunityIds.includes(opp.id);
+      return matchesSearch && matchesSkills && matchesExperience && matchesAvailability && appliedOpportunityIds.includes(opp.id);
     }
     return false;
   });
@@ -97,10 +191,94 @@ export default function Opportunities() {
               className="pl-10"
             />
           </div>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Filter className="h-4 w-4" />
-            <span>Filter</span>
-          </Button>
+          
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <span>Filter</span>
+                {(selectedSkills.length > 0 || experienceLevel !== 'any' || availability !== 'any') && (
+                  <span className="bg-sta-purple text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {selectedSkills.length + (experienceLevel !== 'any' ? 1 : 0) + (availability !== 'any' ? 1 : 0)}
+                  </span>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="w-[300px] sm:w-[400px]">
+              <SheetHeader>
+                <SheetTitle>Filter Opportunities</SheetTitle>
+                <SheetDescription>
+                  Refine results based on your preferences
+                </SheetDescription>
+              </SheetHeader>
+              
+              <div className="py-6 space-y-6">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium">Skills</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {SKILL_OPTIONS.map(skill => (
+                      <div key={skill} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`skill-${skill}`}
+                          checked={selectedSkills.includes(skill)}
+                          onCheckedChange={() => toggleSkill(skill)}
+                        />
+                        <Label htmlFor={`skill-${skill}`} className="text-sm">{skill}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Experience Level</h3>
+                  <Select 
+                    value={experienceLevel} 
+                    onValueChange={setExperienceLevel}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select experience level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXPERIENCE_LEVELS.map(level => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Availability</h3>
+                  <Select 
+                    value={availability} 
+                    onValueChange={setAvailability}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select availability" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABILITY_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              <SheetFooter className="flex flex-row justify-between sm:justify-between gap-2">
+                <Button variant="outline" onClick={clearFilters} className="flex items-center gap-1">
+                  <X size={16} />
+                  Clear filters
+                </Button>
+                <SheetClose asChild>
+                  <Button>Apply Filters</Button>
+                </SheetClose>
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
         </div>
         
         <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>

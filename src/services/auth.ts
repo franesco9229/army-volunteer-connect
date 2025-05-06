@@ -1,12 +1,14 @@
 
-// This is a placeholder for AWS Cognito integration
-// In a production app, you would install AWS SDK and use it to interact with Cognito
+// AWS Cognito Authentication Service
+// This would be replaced with actual AWS Amplify/Cognito SDK in production
 
 interface AuthUser {
   id: string;
   username: string;
   email: string;
   name?: string;
+  attributes?: Record<string, string>;
+  groups?: string[];
 }
 
 interface SignInCredentials {
@@ -19,69 +21,146 @@ interface SignUpCredentials {
   password: string;
   email: string;
   name?: string;
+  attributes?: Record<string, string>;
 }
 
-export const AuthService = {
-  // Sign in with username/email and password
+export const Auth = {
+  // Current authenticated user
+  currentUser: null as AuthUser | null,
+  currentSession: null as string | null,
+  
+  // Sign in with username/email and password using AWS Cognito
   signIn: async (credentials: SignInCredentials): Promise<AuthUser> => {
-    // In a real implementation, this would use AWS Cognito Auth
-    console.log("Signing in with credentials:", credentials);
+    console.log("Signing in with Cognito:", credentials);
     
-    // Mock successful authentication
-    return {
-      id: "user-123",
-      username: credentials.username,
-      email: "example@email.com",
-      name: "John Doe"
-    };
+    try {
+      // This would be replaced with actual Cognito authentication
+      // Using AWS Amplify Auth.signIn() or Amazon Cognito Identity SDK
+      
+      // Mock successful authentication
+      const user = {
+        id: "user-123",
+        username: credentials.username,
+        email: "example@email.com",
+        name: "John Doe",
+        groups: ["volunteers"]
+      };
+      
+      Auth.currentUser = user;
+      Auth.currentSession = "mock-jwt-token";
+      
+      return user;
+    } catch (error) {
+      console.error("Cognito sign in failed:", error);
+      throw new Error("Authentication failed. Please check your credentials.");
+    }
   },
   
-  // Register a new user
+  // Register a new user with AWS Cognito
   signUp: async (credentials: SignUpCredentials): Promise<AuthUser> => {
-    // In a real implementation, this would use AWS Cognito Auth
-    console.log("Registering user:", credentials);
+    console.log("Registering with Cognito:", credentials);
     
-    // Mock successful registration
-    return {
-      id: "user-123",
-      username: credentials.username,
-      email: credentials.email,
-      name: credentials.name
-    };
+    try {
+      // This would be replaced with actual Cognito registration
+      // Using AWS Amplify Auth.signUp() or Amazon Cognito Identity SDK
+      
+      // Mock successful registration
+      return {
+        id: "user-123",
+        username: credentials.username,
+        email: credentials.email,
+        name: credentials.name,
+        attributes: credentials.attributes
+      };
+    } catch (error) {
+      console.error("Cognito sign up failed:", error);
+      throw new Error("Registration failed. Please try again.");
+    }
   },
   
-  // Sign out current user
+  // Sign out current user from Cognito
   signOut: async (): Promise<void> => {
-    // In a real implementation, this would use AWS Cognito Auth
-    console.log("Signing out user");
+    console.log("Signing out from Cognito");
+    
+    try {
+      // This would be replaced with actual Cognito sign out
+      // Using AWS Amplify Auth.signOut() or Amazon Cognito Identity SDK
+      Auth.currentUser = null;
+      Auth.currentSession = null;
+    } catch (error) {
+      console.error("Cognito sign out failed:", error);
+      throw error;
+    }
   },
   
-  // Check if user is authenticated
+  // Check if user is authenticated with Cognito
   isAuthenticated: async (): Promise<boolean> => {
-    // In a real implementation, this would check with AWS Cognito
-    return true;
+    try {
+      // This would be replaced with actual Cognito session check
+      // Using AWS Amplify Auth.currentAuthenticatedUser() or similar
+      return !!Auth.currentUser;
+    } catch (error) {
+      return false;
+    }
   },
   
-  // Get current authenticated user
+  // Get current authenticated user from Cognito
   getCurrentUser: async (): Promise<AuthUser | null> => {
-    // In a real implementation, this would get the current user from AWS Cognito
-    return {
-      id: "user-123",
-      username: "johndoe",
-      email: "john.doe@example.com",
-      name: "John Doe"
-    };
+    try {
+      // This would be replaced with actual Cognito user fetch
+      // Using AWS Amplify Auth.currentAuthenticatedUser() or similar
+      return Auth.currentUser;
+    } catch (error) {
+      console.error("Error getting current user:", error);
+      return null;
+    }
   },
   
-  // Forgot password
+  // Get current session JWT token
+  getCurrentSession: async (): Promise<string | null> => {
+    try {
+      // This would be replaced with actual Cognito token fetch
+      // Using AWS Amplify Auth.currentSession() or similar
+      return Auth.currentSession;
+    } catch (error) {
+      console.error("Error getting current session:", error);
+      throw new Error("No active session found");
+    }
+  },
+  
+  // Forgot password flow with Cognito
   forgotPassword: async (email: string): Promise<void> => {
-    // In a real implementation, this would trigger AWS Cognito's forgot password flow
-    console.log("Sending password reset for:", email);
+    try {
+      // This would be replaced with actual Cognito forgot password
+      // Using AWS Amplify Auth.forgotPassword() or similar
+      console.log("Sending password reset for:", email);
+    } catch (error) {
+      console.error("Forgot password failed:", error);
+      throw error;
+    }
   },
   
-  // Reset password with code
+  // Reset password with verification code from Cognito
   resetPassword: async (email: string, code: string, newPassword: string): Promise<void> => {
-    // In a real implementation, this would complete AWS Cognito's password reset
-    console.log("Resetting password for:", email);
+    try {
+      // This would be replaced with actual Cognito password reset
+      // Using AWS Amplify Auth.forgotPasswordSubmit() or similar
+      console.log("Resetting password for:", email);
+    } catch (error) {
+      console.error("Reset password failed:", error);
+      throw error;
+    }
+  },
+  
+  // Update user attributes in Cognito
+  updateUserAttributes: async (attributes: Record<string, string>): Promise<void> => {
+    try {
+      // This would be replaced with actual Cognito attribute update
+      // Using AWS Amplify Auth.updateUserAttributes() or similar
+      console.log("Updating user attributes:", attributes);
+    } catch (error) {
+      console.error("Update attributes failed:", error);
+      throw error;
+    }
   }
 };

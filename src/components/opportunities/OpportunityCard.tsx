@@ -39,14 +39,14 @@ export function OpportunityCard({
   const isOpen = status === 'Open';
   
   return (
-    <Card className="card-transition h-full flex flex-col">
-      <CardHeader className="pb-2">
+    <Card className="card-transition h-full flex flex-col border-sta-purple/20 hover:border-sta-purple/50 shadow-sm">
+      <CardHeader className="pb-2 bg-gradient-to-r from-transparent to-sta-purple/5 rounded-t-md">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-xl">{title}</CardTitle>
+          <CardTitle className="text-xl text-sta-purple-dark">{title}</CardTitle>
           <StatusBadge status={status} />
         </div>
         <div className="flex items-center text-sm text-muted-foreground mt-1">
-          <Building className="h-4 w-4 mr-1" />
+          <Building className="h-4 w-4 mr-1 text-sta-purple" />
           <span>{client}</span>
         </div>
       </CardHeader>
@@ -73,7 +73,7 @@ export function OpportunityCard({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="pt-2 flex items-center justify-between">
+      <CardFooter className="pt-2 flex items-center justify-between border-t border-sta-purple/10">
         <div className="text-xs text-muted-foreground">
           Posted: {new Date(postedDate).toLocaleDateString()}
         </div>
@@ -82,6 +82,7 @@ export function OpportunityCard({
             onClick={handleApply} 
             disabled={hasApplied}
             variant={hasApplied ? "outline" : "default"}
+            className={hasApplied ? "border-sta-purple text-sta-purple" : ""}
           >
             {hasApplied ? 'Applied' : 'Apply Now'}
           </Button>

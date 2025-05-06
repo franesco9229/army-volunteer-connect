@@ -111,4 +111,21 @@
   .sta-button {
     @apply bg-sta-purple hover:bg-sta-purple-dark text-white;
   }
+  
+  /* Scottish Tech Army minimalist design */
+  .sta-card {
+    @apply border border-sta-purple/20 hover:border-sta-purple/50 shadow-sm transition-all duration-300;
+  }
+  
+  .sta-header {
+    @apply bg-gradient-to-r from-transparent to-sta-purple/5;
+  }
+  
+  .sta-icon {
+    @apply text-sta-purple;
+  }
+  
+  .sta-border {
+    @apply border-sta-purple/10;
+  }
 }
