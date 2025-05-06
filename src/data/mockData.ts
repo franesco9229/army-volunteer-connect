@@ -1,4 +1,3 @@
-
 import { 
   User, 
   Skill, 
@@ -26,10 +25,11 @@ export const mockSkills: Skill[] = [
 ];
 
 // Mock User Data
-export const mockCurrentUser: User = {
-  id: "1",
-  name: "Alex Johnson",
-  email: "alex.johnson@example.com",
+export const mockCurrentUser = {
+  id: 'user-1',
+  name: 'John Doe',
+  email: 'john.doe@example.com',
+  photoUrl: '', // Empty string for now, will be filled when user uploads a photo
   skills: mockSkills.slice(0, 5), // First 5 skills from the list
   totalVolunteerHours: 120
 };

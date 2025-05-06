@@ -13,20 +13,38 @@ import {
   mockCurrentUser
 } from '@/data/mockData';
 import { Skill, SkillLevel } from '@/types';
-import { User, Mail, Edit, Save, X } from 'lucide-react';
+import { User, Mail, Edit, Save, X, Plus, Upload, Clock, Calendar, Star } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Form, FormField, FormItem, FormLabel, FormControl } from '@/components/ui/form';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
 
 export default function Profile() {
   const [skills, setSkills] = useState<Skill[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [newSkill, setNewSkill] = useState('');
   const [profileData, setProfileData] = useState({
     name: mockCurrentUser.name,
     email: mockCurrentUser.email,
+    photoUrl: mockCurrentUser.photoUrl || '',
+  });
+  const [preferences, setPreferences] = useState({
+    wantToMentor: false,
+    wantToBeMentored: false,
+    hoursPerWeek: 5,
+    availability: {
+      monday: false,
+      tuesday: false,
+      wednesday: false,
+      thursday: false,
+      friday: false,
+      saturday: false,
+      sunday: false,
+    }
   });
 
   const fetchData = async () => {
@@ -81,8 +99,55 @@ export default function Profile() {
     setProfileData({
       name: mockCurrentUser.name,
       email: mockCurrentUser.email,
+      photoUrl: mockCurrentUser.photoUrl || '',
     });
     setIsEditingProfile(false);
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // In a real app, we would upload the file to a server here
+      // For demonstration, we'll use a local URL
+      const fileUrl = URL.createObjectURL(file);
+      setProfileData(prev => ({
+        ...prev,
+        photoUrl: fileUrl
+      }));
+      toast.success("Profile photo updated");
+    }
+  };
+
+  const handleAddSkill = () => {
+    if (newSkill.trim()) {
+      // In a real app, we would make an API call to add the skill
+      const newSkillObj: Skill = {
+        id: `skill-${Date.now()}`, // Generate a temporary ID
+        name: newSkill.trim(),
+        level: SkillLevel.Learning
+      };
+      
+      setSkills(prev => [...prev, newSkillObj]);
+      setNewSkill('');
+      toast.success("Skill added successfully");
+    }
+  };
+
+  const handlePreferenceChange = (name: string, value: boolean | number) => {
+    setPreferences(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAvailabilityChange = (day: string, value: boolean) => {
+    setPreferences(prev => ({
+      ...prev,
+      availability: {
+        ...prev.availability,
+        [day]: value
+      }
+    }));
   };
 
   return (
@@ -93,12 +158,30 @@ export default function Profile() {
           <Card className="flex-1">
             <CardContent className="p-6">
               <div className="flex flex-col items-center md:flex-row md:items-start gap-6">
-                <Avatar className="w-24 h-24">
-                  <AvatarImage src="/placeholder.svg" alt={mockCurrentUser.name} />
-                  <AvatarFallback className="text-2xl">
-                    {mockCurrentUser.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="w-24 h-24">
+                    <AvatarImage src={profileData.photoUrl || "/placeholder.svg"} alt={profileData.name} />
+                    <AvatarFallback className="text-2xl bg-sta-purple text-white">
+                      {profileData.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  {isEditingProfile && (
+                    <div className="absolute bottom-0 right-0">
+                      <Label htmlFor="photo-upload" className="cursor-pointer">
+                        <div className="bg-sta-purple hover:bg-sta-purple-dark text-white p-2 rounded-full">
+                          <Upload className="h-4 w-4" />
+                        </div>
+                      </Label>
+                      <Input 
+                        id="photo-upload" 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handlePhotoChange}
+                      />
+                    </div>
+                  )}
+                </div>
                 
                 <div className="space-y-4 text-center md:text-left flex-1">
                   {isEditingProfile ? (
@@ -218,6 +301,20 @@ export default function Profile() {
                   {isEditing ? (
                     // Edit mode
                     <div className="space-y-6">
+                      {/* Add new skill input */}
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add a new skill..."
+                          value={newSkill}
+                          onChange={(e) => setNewSkill(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button onClick={handleAddSkill} className="bg-sta-purple hover:bg-sta-purple-dark">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                      </div>
+
                       {skills.map((skill) => (
                         <SkillLevelSelector
                           key={skill.id}
@@ -246,12 +343,107 @@ export default function Profile() {
           <TabsContent value="preferences" className="mt-6">
             <Card>
               <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-6">Notification Preferences</h3>
+                <h3 className="text-xl font-semibold mb-6">Your Volunteering Preferences</h3>
                 
-                <p className="text-muted-foreground">
-                  Notification preferences coming soon. You will be able to customize
-                  which updates and opportunities you receive notifications for.
-                </p>
+                {/* Mentoring Section */}
+                <div className="space-y-6 mb-8">
+                  <h4 className="text-lg font-medium flex items-center">
+                    <Star className="h-5 w-5 mr-2 text-sta-purple" />
+                    Mentoring Preferences
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="want-to-mentor" 
+                        checked={preferences.wantToMentor}
+                        onCheckedChange={(checked) => 
+                          handlePreferenceChange('wantToMentor', checked === true)
+                        }
+                      />
+                      <label 
+                        htmlFor="want-to-mentor" 
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        I want to mentor others
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox 
+                        id="want-to-be-mentored" 
+                        checked={preferences.wantToBeMentored}
+                        onCheckedChange={(checked) => 
+                          handlePreferenceChange('wantToBeMentored', checked === true)
+                        }
+                      />
+                      <label 
+                        htmlFor="want-to-be-mentored" 
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        I want to be mentored
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Hours Per Week */}
+                <div className="space-y-6 mb-8">
+                  <h4 className="text-lg font-medium flex items-center">
+                    <Clock className="h-5 w-5 mr-2 text-sta-purple" />
+                    Volunteer Hours
+                  </h4>
+                  
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm">Hours available per week</span>
+                      <span className="font-medium">{preferences.hoursPerWeek} hours</span>
+                    </div>
+                    
+                    <Slider 
+                      value={[preferences.hoursPerWeek]} 
+                      min={1} 
+                      max={20} 
+                      step={1}
+                      onValueChange={(values) => handlePreferenceChange('hoursPerWeek', values[0])} 
+                    />
+                  </div>
+                </div>
+                
+                {/* Availability */}
+                <div className="space-y-6">
+                  <h4 className="text-lg font-medium flex items-center">
+                    <Calendar className="h-5 w-5 mr-2 text-sta-purple" />
+                    Weekly Availability
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {Object.entries(preferences.availability).map(([day, isAvailable]) => (
+                      <div key={day} className="flex items-center space-x-2">
+                        <Checkbox 
+                          id={`day-${day}`} 
+                          checked={isAvailable}
+                          onCheckedChange={(checked) => 
+                            handleAvailabilityChange(day, checked === true)
+                          }
+                        />
+                        <label 
+                          htmlFor={`day-${day}`} 
+                          className="text-sm font-medium leading-none capitalize peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {day}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <Button 
+                  className="mt-8 bg-sta-purple hover:bg-sta-purple-dark"
+                  onClick={() => toast.success("Preferences saved successfully")}
+                >
+                  Save Preferences
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
