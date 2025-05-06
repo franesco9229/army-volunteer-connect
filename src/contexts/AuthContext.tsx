@@ -9,12 +9,14 @@ interface AuthUser {
   name?: string;
   attributes?: Record<string, string>;
   groups?: string[];
+  isAdmin?: boolean;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdmin: boolean;
   signIn: (username: string, password: string) => Promise<void>;
   signUp: (username: string, password: string, email: string, name?: string, attributes?: Record<string, string>) => Promise<void>;
   signOut: () => Promise<void>;
@@ -112,12 +114,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  // Check if user belongs to admin group
+  const isAdmin = !!user?.groups?.includes('admins');
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
         isLoading,
+        isAdmin,
         signIn,
         signUp,
         signOut,

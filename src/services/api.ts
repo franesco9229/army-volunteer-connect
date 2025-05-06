@@ -1,5 +1,5 @@
 
-// Integration with AWS API Gateway and related services
+// Integration with AWS API Gateway, Lambda, DynamoDB and related services
 import { Auth } from './auth';
 
 // Base configuration for AWS services
@@ -74,6 +74,43 @@ export const ApiService = {
   
   delete: <T>(endpoint: string, options?: Omit<ApiOptions, 'method' | 'body'>): Promise<T> => {
     return ApiService.callApi<T>(endpoint, { ...options, method: 'DELETE' });
+  },
+  
+  // WebSockets for real-time updates
+  connectWebSocket: (url: string, onMessage: (data: any) => void) => {
+    const socket = new WebSocket(url);
+    
+    socket.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+    
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        onMessage(data);
+      } catch (error) {
+        console.error('Error parsing WebSocket message:', error);
+      }
+    };
+    
+    socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+    
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+    
+    return {
+      send: (data: any) => {
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify(data));
+        } else {
+          console.error('WebSocket is not open');
+        }
+      },
+      close: () => socket.close()
+    };
   }
 };
 
@@ -82,7 +119,7 @@ export const VolunteeringApi = {
   // Get all available opportunities
   getOpportunities: (filters?: any) => 
     ApiService.get('/opportunities', { 
-      requiresAuth: true,
+      requiresAuth: false, // Allow unauthenticated users to browse opportunities
       headers: filters ? { 'X-Filter-Params': JSON.stringify(filters) } : {}
     }),
   
@@ -101,6 +138,14 @@ export const VolunteeringApi = {
   // Get applications for a specific user
   getUserApplications: (userId: string) => 
     ApiService.get(`/users/${userId}/applications`),
+    
+  // Admin: Get all applications for review
+  getApplicationsForReview: () =>
+    ApiService.get('/admin/applications/pending'),
+    
+  // Admin: Approve or reject an application
+  updateApplicationStatus: (applicationId: string, status: 'approved' | 'rejected', notes?: string) =>
+    ApiService.put(`/admin/applications/${applicationId}/status`, { status, notes }),
   
   // Get volunteering history for a specific user
   getUserVolunteeringHistory: (userId: string) => 
@@ -126,6 +171,14 @@ export const JiraApi = {
     ApiService.post(`/jira/tasks/${taskId}/worklog`, {
       timeSpentSeconds,
       comment
+    }),
+    
+  // Create a new Jira issue for a volunteer
+  createJiraTicket: (opportunityId: string, userId: string) =>
+    ApiService.post(`/jira/tasks`, {
+      opportunityId,
+      userId,
+      timestamp: new Date().toISOString()
     })
 };
 
@@ -153,5 +206,36 @@ export const HubSpotApi = {
       activityType,
       details,
       timestamp: new Date().toISOString()
+    }),
+    
+  // Create a new contact in HubSpot
+  createContact: (userData: any) =>
+    ApiService.post(`/hubspot/contacts`, userData)
+};
+
+// AWS SNS Notification Service
+export const NotificationApi = {
+  // Subscribe a user to a topic
+  subscribeToTopic: (userId: string, topic: string, endpoint: string) =>
+    ApiService.post(`/notifications/subscribe`, {
+      userId,
+      topic,
+      endpoint
+    }),
+    
+  // Unsubscribe a user from a topic
+  unsubscribeFromTopic: (subscriptionArn: string) =>
+    ApiService.delete(`/notifications/subscriptions/${subscriptionArn}`),
+    
+  // Get all subscriptions for a user
+  getUserSubscriptions: (userId: string) =>
+    ApiService.get(`/notifications/users/${userId}/subscriptions`),
+    
+  // Send a notification to a specific user
+  sendNotification: (userId: string, message: string, subject: string) =>
+    ApiService.post(`/notifications/send`, {
+      userId,
+      message,
+      subject
     })
 };

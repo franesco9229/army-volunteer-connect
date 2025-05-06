@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Opportunity } from '@/types';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SkillBadge } from '@/components/ui/SkillBadge';
-import { Clock, Building, Calendar } from 'lucide-react';
+import { Clock, Building, Calendar, Briefcase } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -27,8 +28,11 @@ export function OpportunityCard({
     timeCommitment, 
     projectDuration, 
     status, 
-    postedDate 
+    postedDate,
+    role
   } = opportunity;
+
+  const { isAuthenticated } = useAuth();
 
   const handleApply = () => {
     if (onApply) {
@@ -54,6 +58,12 @@ export function OpportunityCard({
         <p className="text-sm mb-4">{description}</p>
         
         <div className="space-y-3">
+          {role && (
+            <div className="flex items-center text-sm">
+              <Briefcase className="h-4 w-4 mr-2 text-sta-purple" />
+              <span>Role: {role}</span>
+            </div>
+          )}
           <div className="flex items-center text-sm">
             <Clock className="h-4 w-4 mr-2 text-sta-purple" />
             <span>{timeCommitment}</span>
@@ -80,11 +90,13 @@ export function OpportunityCard({
         {isOpen && (
           <Button 
             onClick={handleApply} 
-            disabled={hasApplied}
+            disabled={hasApplied || !isAuthenticated}
             variant={hasApplied ? "outline" : "default"}
-            className={hasApplied ? "border-sta-purple text-sta-purple" : ""}
+            className={hasApplied 
+              ? "border-sta-purple text-sta-purple" 
+              : "bg-sta-purple hover:bg-sta-purple/90 text-white"}
           >
-            {hasApplied ? 'Applied' : 'Apply Now'}
+            {hasApplied ? 'Applied' : isAuthenticated ? 'Apply Now' : 'Login to Apply'}
           </Button>
         )}
       </CardFooter>

@@ -35,6 +35,7 @@ export interface Opportunity {
   projectDuration: string;
   status: OpportunityStatus;
   postedDate: string;
+  role?: string; // Added role field
 }
 
 export enum OpportunityStatus {
@@ -50,12 +51,15 @@ export interface Application {
   opportunityId: string;
   status: ApplicationStatus;
   appliedDate: string;
+  notes?: string; // Added notes field
 }
 
 export enum ApplicationStatus {
   Pending = "Pending",
   Successful = "Successful",
-  Unsuccessful = "Unsuccessful"
+  Unsuccessful = "Unsuccessful",
+  Approved = "Approved", // Added for admin workflow
+  Rejected = "Rejected"  // Added for admin workflow
 }
 
 // Volunteering Record types

@@ -9,6 +9,7 @@ interface AuthUser {
   name?: string;
   attributes?: Record<string, string>;
   groups?: string[];
+  isAdmin?: boolean;
 }
 
 interface SignInCredentials {
@@ -31,7 +32,7 @@ export const Auth = {
   
   // Sign in with username/email and password using AWS Cognito
   signIn: async (credentials: SignInCredentials): Promise<AuthUser> => {
-    console.log("Signing in with Cognito:", credentials);
+    console.log("Signing in with AWS Cognito:", credentials);
     
     try {
       // This would be replaced with actual Cognito authentication
@@ -43,11 +44,41 @@ export const Auth = {
         username: credentials.username,
         email: "example@email.com",
         name: "John Doe",
-        groups: ["volunteers"]
+        groups: ["volunteers"],
+        isAdmin: credentials.username === "admin" // For demo purposes
       };
       
       Auth.currentUser = user;
       Auth.currentSession = "mock-jwt-token";
+      
+      // This would be the actual AWS Cognito integration:
+      /*
+      import { Amplify, Auth as AmplifyAuth } from 'aws-amplify';
+      
+      Amplify.configure({
+        Auth: {
+          region: process.env.REACT_APP_AWS_REGION,
+          userPoolId: process.env.REACT_APP_USER_POOL_ID,
+          userPoolWebClientId: process.env.REACT_APP_USER_POOL_CLIENT_ID,
+        }
+      });
+      
+      const cognitoUser = await AmplifyAuth.signIn(credentials.username, credentials.password);
+      const userAttributes = await AmplifyAuth.currentUserInfo();
+      const session = await AmplifyAuth.currentSession();
+      
+      const user = {
+        id: userAttributes.attributes.sub,
+        username: userAttributes.username,
+        email: userAttributes.attributes.email,
+        name: userAttributes.attributes.name,
+        groups: session.getAccessToken().payload['cognito:groups'] || [],
+        attributes: userAttributes.attributes
+      };
+      
+      Auth.currentUser = user;
+      Auth.currentSession = session.getIdToken().getJwtToken();
+      */
       
       return user;
     } catch (error) {
@@ -58,20 +89,26 @@ export const Auth = {
   
   // Register a new user with AWS Cognito
   signUp: async (credentials: SignUpCredentials): Promise<AuthUser> => {
-    console.log("Registering with Cognito:", credentials);
+    console.log("Registering with AWS Cognito:", credentials);
     
     try {
       // This would be replaced with actual Cognito registration
       // Using AWS Amplify Auth.signUp() or Amazon Cognito Identity SDK
       
       // Mock successful registration
-      return {
-        id: "user-123",
+      const user = {
+        id: "user-" + Math.floor(Math.random() * 10000),
         username: credentials.username,
         email: credentials.email,
         name: credentials.name,
+        groups: ["volunteers"],
         attributes: credentials.attributes
       };
+      
+      Auth.currentUser = user;
+      Auth.currentSession = "mock-jwt-token";
+      
+      return user;
     } catch (error) {
       console.error("Cognito sign up failed:", error);
       throw new Error("Registration failed. Please try again.");
@@ -80,7 +117,7 @@ export const Auth = {
   
   // Sign out current user from Cognito
   signOut: async (): Promise<void> => {
-    console.log("Signing out from Cognito");
+    console.log("Signing out from AWS Cognito");
     
     try {
       // This would be replaced with actual Cognito sign out
