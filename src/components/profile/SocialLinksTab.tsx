@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LinkedIn, Facebook, MessageCircle, Trash2 } from 'lucide-react';
+import { Linkedin, Facebook, MessageCircle, Trash2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 export interface SocialLink {
@@ -19,7 +19,7 @@ interface SocialLinksTabProps {
 }
 
 const platformOptions = [
-  { value: 'linkedin', label: 'LinkedIn', icon: LinkedIn },
+  { value: 'linkedin', label: 'LinkedIn', icon: Linkedin },
   { value: 'facebook', label: 'Facebook', icon: Facebook },
   { value: 'medium', label: 'Medium', icon: MessageCircle }
 ];

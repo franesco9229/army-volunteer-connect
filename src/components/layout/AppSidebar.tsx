@@ -8,7 +8,7 @@ import {
   FileText, 
   Settings,
   LogOut,
-  LinkedIn,
+  Linkedin,
   Facebook,
   MessageCircle
 } from 'lucide-react';
