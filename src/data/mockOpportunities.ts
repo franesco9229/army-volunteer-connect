@@ -1,5 +1,5 @@
 
-import { Application, ApplicationStatus, Opportunity } from '@/types';
+import { Application, ApplicationStatus, Opportunity, OpportunityStatus } from '@/types';
 import { mockUsers } from './mockUsers';
 
 // Mock opportunities
@@ -15,7 +15,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote",
     postedDate: new Date(2025, 4, 1).toISOString(),
     applicationDeadline: new Date(2025, 6, 1).toISOString(),
-    status: "active",
+    status: OpportunityStatus.Active,
     roleType: "developer",
     projectStatus: "active"
   },
@@ -30,7 +30,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote",
     postedDate: new Date(2025, 4, 15).toISOString(),
     applicationDeadline: new Date(2025, 5, 15).toISOString(),
-    status: "active",
+    status: OpportunityStatus.Active,
     roleType: "designer",
     projectStatus: "active"
   },
@@ -45,7 +45,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote",
     postedDate: new Date(2025, 3, 20).toISOString(),
     applicationDeadline: new Date(2025, 4, 20).toISOString(),
-    status: "active",
+    status: OpportunityStatus.Active,
     roleType: "developer",
     projectStatus: "active"
   },
@@ -60,7 +60,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote with occasional in-person meetings",
     postedDate: new Date(2025, 3, 10).toISOString(),
     applicationDeadline: new Date(2025, 4, 10).toISOString(),
-    status: "active",
+    status: OpportunityStatus.Active,
     roleType: "project-manager",
     projectStatus: "active"
   },
@@ -75,7 +75,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote",
     postedDate: new Date(2025, 4, 5).toISOString(),
     applicationDeadline: new Date(2025, 5, 5).toISOString(),
-    status: "active",
+    status: OpportunityStatus.Active,
     roleType: "content-creator",
     projectStatus: "active"
   },
@@ -90,7 +90,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote",
     postedDate: new Date(2025, 2, 15).toISOString(),
     applicationDeadline: new Date(2025, 3, 15).toISOString(),
-    status: "closed",
+    status: OpportunityStatus.Closed,
     roleType: "business-analyst",
     projectStatus: "completed"
   },
@@ -105,7 +105,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote",
     postedDate: new Date(2025, 3, 1).toISOString(),
     applicationDeadline: new Date(2025, 4, 1).toISOString(),
-    status: "closed",
+    status: OpportunityStatus.Closed,
     roleType: "developer",
     projectStatus: "completed"
   },
@@ -120,7 +120,7 @@ export const mockOpportunities: Opportunity[] = [
     location: "Remote",
     postedDate: new Date(2025, 2, 20).toISOString(),
     applicationDeadline: new Date(2025, 3, 20).toISOString(),
-    status: "closed",
+    status: OpportunityStatus.Closed,
     roleType: "marketing",
     projectStatus: "completed"
   }
