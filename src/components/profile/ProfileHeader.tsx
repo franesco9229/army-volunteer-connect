@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skill } from '@/types';
@@ -11,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Upload, Github, Linkedin, Twitter, Facebook, Instagram } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { SkillBadge } from '@/components/ui/SkillBadge';
 
 interface ProfileHeaderProps {
   userData: {
