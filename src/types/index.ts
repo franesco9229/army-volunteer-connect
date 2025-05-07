@@ -1,4 +1,3 @@
-
 // User-related types
 export interface User {
   id: string;
@@ -46,6 +45,11 @@ export interface Opportunity {
   projectStatus?: string;
   duration?: string;
   location?: string;
+  video?: {
+    url: string;
+    thumbnail?: string;
+    title?: string;
+  };
 }
 
 export enum OpportunityStatus {

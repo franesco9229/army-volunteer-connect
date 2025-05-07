@@ -1,4 +1,3 @@
-
 import { Application, ApplicationStatus, Opportunity, OpportunityStatus } from '@/types';
 import { mockUsers } from './mockUsers';
 
@@ -19,7 +18,12 @@ export const mockOpportunities: Opportunity[] = [
     applicationDeadline: new Date(2025, 6, 1).toISOString(),
     status: OpportunityStatus.Active,
     roleType: "developer",
-    projectStatus: "active"
+    projectStatus: "active",
+    video: {
+      url: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
+      title: "Health App Project Overview"
+    }
   },
   {
     id: "opp-2",
@@ -36,7 +40,12 @@ export const mockOpportunities: Opportunity[] = [
     applicationDeadline: new Date(2025, 5, 15).toISOString(),
     status: OpportunityStatus.Active,
     roleType: "designer",
-    projectStatus: "active"
+    projectStatus: "active",
+    video: {
+      url: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
+      title: "Community Platform Design Preview"
+    }
   },
   {
     id: "opp-3",

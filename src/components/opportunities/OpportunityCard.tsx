@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Opportunity } from '@/types';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SkillBadge } from '@/components/ui/SkillBadge';
-import { Clock, Building, Calendar, Briefcase } from 'lucide-react';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import { Clock, Building, Calendar, Briefcase, Play, Video } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -30,9 +31,11 @@ export function OpportunityCard({
     projectDuration, 
     status, 
     postedDate,
-    role
+    role,
+    video
   } = opportunity;
 
+  const [isPlaying, setIsPlaying] = useState(false);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -46,6 +49,10 @@ export function OpportunityCard({
     if (onApply) {
       onApply(id);
     }
+  };
+
+  const handleVideoToggle = () => {
+    setIsPlaying(!isPlaying);
   };
 
   // Show the Apply button for both "Open" and "Active" statuses
@@ -63,7 +70,52 @@ export function OpportunityCard({
           <span>{client}</span>
         </div>
       </CardHeader>
+      
       <CardContent className="py-2 flex-grow">
+        {video && (
+          <div className="mb-4">
+            <div className="relative rounded-md overflow-hidden border border-sta-purple/10">
+              <AspectRatio ratio={16/9} className="bg-muted">
+                {isPlaying ? (
+                  <video 
+                    src={video.url} 
+                    controls 
+                    autoPlay 
+                    className="w-full h-full object-cover"
+                    onEnded={() => setIsPlaying(false)}
+                  />
+                ) : (
+                  <div className="relative w-full h-full">
+                    <img 
+                      src={video.thumbnail || video.url} 
+                      alt={video.title || "Opportunity video"} 
+                      className="w-full h-full object-cover"
+                    />
+                    <div 
+                      className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer hover:bg-black/40 transition-colors"
+                      onClick={handleVideoToggle}
+                    >
+                      <Button 
+                        size="icon" 
+                        className="bg-sta-purple hover:bg-sta-purple/90 text-white rounded-full w-12 h-12"
+                        onClick={handleVideoToggle}
+                      >
+                        <Play className="w-6 h-6" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </AspectRatio>
+              {!isPlaying && video.title && (
+                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-2 text-sm flex items-center">
+                  <Video className="w-4 h-4 mr-2" />
+                  {video.title}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <p className="text-sm mb-4">{description}</p>
         
         <div className="space-y-3">
@@ -92,6 +144,7 @@ export function OpportunityCard({
           </div>
         </div>
       </CardContent>
+      
       <CardFooter className="pt-2 flex items-center justify-between border-t border-sta-purple/10">
         <div className="text-xs text-muted-foreground">
           Posted: {new Date(postedDate).toLocaleDateString()}
