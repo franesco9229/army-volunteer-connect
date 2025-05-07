@@ -50,8 +50,8 @@ export interface Opportunity {
 
 export enum OpportunityStatus {
   Open = "Open",
-  Active = "active",  // This matches the lowercase "active" in the mock data
-  Closed = "closed",  // This matches the lowercase "closed" in the mock data
+  Active = "active",
+  Closed = "closed",
   Filled = "Filled",
   Completed = "Completed"
 }

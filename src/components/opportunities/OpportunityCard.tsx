@@ -48,7 +48,8 @@ export function OpportunityCard({
     }
   };
 
-  const isOpen = status === 'Open';
+  // Show the Apply button for both "Open" and "Active" statuses
+  const isApplicable = status === 'Open' || status === 'active';
   
   return (
     <Card className="card-transition h-full flex flex-col border-sta-purple/20 hover:border-sta-purple/50 shadow-sm">
@@ -95,7 +96,7 @@ export function OpportunityCard({
         <div className="text-xs text-muted-foreground">
           Posted: {new Date(postedDate).toLocaleDateString()}
         </div>
-        {isOpen && (
+        {isApplicable && (
           <Button 
             onClick={handleApply} 
             disabled={hasApplied}
