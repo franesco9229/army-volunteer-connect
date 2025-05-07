@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 interface ProfilePrivacyOptionProps {
@@ -11,32 +11,26 @@ interface ProfilePrivacyOptionProps {
   onCheckedChange: (checked: boolean) => void;
 }
 
-export function ProfilePrivacyOption({
+export const ProfilePrivacyOption = ({
   id,
   label,
   description,
   checked,
-  onCheckedChange
-}: ProfilePrivacyOptionProps) {
+  onCheckedChange,
+}: ProfilePrivacyOptionProps) => {
   return (
-    <div className="flex items-start space-x-2 mt-1">
-      <Checkbox 
-        id={id} 
-        checked={checked} 
-        onCheckedChange={onCheckedChange}
-        className="mt-1" 
-      />
-      <div>
-        <Label 
-          htmlFor={id}
-          className="font-normal"
-        >
-          {label}
-        </Label>
+    <div className="flex items-start justify-between space-x-4">
+      <div className="space-y-0.5">
+        <Label htmlFor={id} className="font-medium">{label}</Label>
         {description && (
-          <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+          <div className="text-sm text-muted-foreground">{description}</div>
         )}
       </div>
+      <Switch
+        id={id}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+      />
     </div>
   );
-}
+};

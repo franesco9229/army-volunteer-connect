@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +10,7 @@ import { TwoFactorAuth } from '@/components/profile/TwoFactorAuth';
 import { Skill, SkillLevel } from '@/types';
 import { fetchUserSkills, updateUserSkill, mockCurrentUser } from '@/data/mockData';
 import { toast } from '@/components/ui/sonner';
+import { ProfilePrivacyOption } from '@/components/profile/ProfilePrivacyOption';
 import { 
   Card, 
   CardContent, 
