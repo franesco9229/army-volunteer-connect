@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { SkillsTab } from '@/components/profile/SkillsTab';
 import { PreferencesTab } from '@/components/profile/PreferencesTab';
-import { SocialLinksTab } from '@/components/profile/SocialLinksTab';
+import { SocialLinksTab, SocialLink } from '@/components/profile/SocialLinksTab';
 import { TwoFactorAuth } from '@/components/profile/TwoFactorAuth';
 import { Skill, SkillLevel } from '@/types';
 import { fetchUserSkills, updateUserSkill, mockCurrentUser } from '@/data/mockData';
@@ -21,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Linkedin, Twitter, Github, Facebook, Instagram } from 'lucide-react';
 
 export default function Profile() {
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -48,6 +49,12 @@ export default function Profile() {
     showPreferences: false,
     showSocialLinks: true
   });
+  
+  // Initial social links
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
+    { id: "1", platform: "LinkedIn", url: "https://linkedin.com/in/username", icon: Linkedin },
+    { id: "2", platform: "X (Twitter)", url: "https://twitter.com/username", icon: Twitter },
+  ]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -95,6 +102,14 @@ export default function Profile() {
     }));
     toast.success(`Privacy setting updated`);
   };
+  
+  const handleSocialLinksChange = (updatedLinks: SocialLink[]) => {
+    setSocialLinks(updatedLinks);
+  };
+  
+  const handlePreferencesChange = (updatedPreferences: typeof preferences) => {
+    setPreferences(updatedPreferences);
+  };
 
   return (
     <AppLayout>
@@ -107,6 +122,8 @@ export default function Profile() {
           }}
           skills={skills}
           totalVolunteerHours={mockCurrentUser.totalVolunteerHours}
+          socialLinks={socialLinks}
+          preferences={preferences}
         />
         
         <Tabs defaultValue="skills">
@@ -127,11 +144,17 @@ export default function Profile() {
           </TabsContent>
           
           <TabsContent value="preferences" className="mt-6">
-            <PreferencesTab initialPreferences={preferences} />
+            <PreferencesTab 
+              initialPreferences={preferences} 
+              onPreferencesChange={handlePreferencesChange}
+            />
           </TabsContent>
 
           <TabsContent value="social" className="mt-6">
-            <SocialLinksTab />
+            <SocialLinksTab 
+              initialLinks={socialLinks}
+              onSocialLinksChange={handleSocialLinksChange}
+            />
           </TabsContent>
 
           <TabsContent value="security" className="mt-6">

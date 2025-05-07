@@ -20,22 +20,38 @@ interface ProfileHeaderProps {
   };
   skills: Skill[];
   totalVolunteerHours: number;
+  socialLinks?: SocialLink[];
+  preferences?: {
+    wantToMentor: boolean;
+    wantToBeMentored: boolean;
+    hoursPerWeek: number;
+    availability: {
+      [key: string]: boolean;
+    }
+  };
 }
 
-export function ProfileHeader({ userData, skills, totalVolunteerHours }: ProfileHeaderProps) {
+export function ProfileHeader({ userData, skills, totalVolunteerHours, socialLinks = [], preferences }: ProfileHeaderProps) {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
     name: userData.name,
     email: userData.email,
     photoUrl: userData.photoUrl || '',
     bio: "I'm passionate about volunteering and making a positive impact in my community. With expertise in web development and project management, I enjoy collaborating on meaningful projects.",
-    socialLinks: [
-      { id: "1", platform: "LinkedIn", url: "https://linkedin.com/in/username", icon: Linkedin },
-      { id: "2", platform: "Twitter", url: "https://twitter.com/username", icon: Twitter },
-    ],
-    preferences: {
+    socialLinks: socialLinks,
+    preferences: preferences || {
       wantToMentor: true,
       wantToBeMentored: false,
+      hoursPerWeek: 5,
+      availability: {
+        monday: false,
+        tuesday: true,
+        wednesday: true,
+        thursday: false,
+        friday: true,
+        saturday: false,
+        sunday: false,
+      }
     }
   });
 
@@ -82,6 +98,7 @@ export function ProfileHeader({ userData, skills, totalVolunteerHours }: Profile
     switch (platform.toLowerCase()) {
       case 'linkedin':
         return <Linkedin className="w-5 h-5" />;
+      case 'x (twitter)':
       case 'twitter':
         return <Twitter className="w-5 h-5" />;
       case 'facebook':
@@ -95,6 +112,26 @@ export function ProfileHeader({ userData, skills, totalVolunteerHours }: Profile
     }
   };
 
+  // Update social links when props change
+  React.useEffect(() => {
+    if (socialLinks && socialLinks.length > 0) {
+      setProfileData(prev => ({
+        ...prev,
+        socialLinks
+      }));
+    }
+  }, [socialLinks]);
+
+  // Update preferences when props change
+  React.useEffect(() => {
+    if (preferences) {
+      setProfileData(prev => ({
+        ...prev,
+        preferences
+      }));
+    }
+  }, [preferences]);
+
   return (
     <div className="flex flex-col gap-6">
       {/* Profile Card - Now larger */}
@@ -102,7 +139,7 @@ export function ProfileHeader({ userData, skills, totalVolunteerHours }: Profile
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Left Column - Photo and Skills */}
-            <div className="flex flex-col items-center md:items-start gap-6">
+            <div className="flex flex-col items-center md:items-start gap-6 md:w-1/3">
               <div className="relative">
                 <Avatar className="w-32 h-32">
                   <AvatarImage src={profileData.photoUrl || "/placeholder.svg"} alt={profileData.name} />
@@ -142,6 +179,29 @@ export function ProfileHeader({ userData, skills, totalVolunteerHours }: Profile
                     <span className="text-sm text-muted-foreground">
                       +{skills.length - 5} more
                     </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* Social Links (now displayed in left column) */}
+              <div className="w-full">
+                <h3 className="font-medium text-sm text-muted-foreground mb-2 text-center md:text-left">Connect with me</h3>
+                <div className="flex flex-wrap gap-3 justify-center md:justify-start">
+                  {profileData.socialLinks.length > 0 ? (
+                    profileData.socialLinks.map((link) => (
+                      <a 
+                        key={link.id}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-500 hover:text-sta-purple transition-colors"
+                        title={link.platform}
+                      >
+                        {renderSocialIcon(link.platform)}
+                      </a>
+                    ))
+                  ) : (
+                    <span className="text-sm text-muted-foreground">No social links added</span>
                   )}
                 </div>
               </div>
@@ -202,22 +262,6 @@ export function ProfileHeader({ userData, skills, totalVolunteerHours }: Profile
                     </div>
                   </div>
                   
-                  {/* Social Media Links */}
-                  <div className="flex gap-3 justify-center md:justify-start">
-                    {profileData.socialLinks.map((link) => (
-                      <a 
-                        key={link.id}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-gray-500 hover:text-sta-purple transition-colors"
-                        title={link.platform}
-                      >
-                        {renderSocialIcon(link.platform)}
-                      </a>
-                    ))}
-                  </div>
-                  
                   {/* Bio Section */}
                   <div>
                     <h3 className="font-medium text-sm text-muted-foreground mb-1">About Me</h3>
@@ -243,6 +287,23 @@ export function ProfileHeader({ userData, skills, totalVolunteerHours }: Profile
                           No mentoring preferences set
                         </span>
                       )}
+                    </div>
+                  </div>
+                  
+                  {/* Availability */}
+                  <div>
+                    <h3 className="font-medium text-sm text-muted-foreground mb-1">Availability</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(profileData.preferences.availability)
+                        .filter(([_, isAvailable]) => isAvailable)
+                        .map(([day]) => (
+                          <span key={day} className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded capitalize">
+                            {day}s
+                          </span>
+                        ))}
+                      <span className="text-sm text-muted-foreground">
+                        ({profileData.preferences.hoursPerWeek} hrs/week)
+                      </span>
                     </div>
                   </div>
                   
@@ -283,4 +344,3 @@ export function ProfileHeader({ userData, skills, totalVolunteerHours }: Profile
     </div>
   );
 }
-

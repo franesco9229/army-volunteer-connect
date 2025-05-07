@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Linkedin, Facebook, MessageCircle, Trash2 } from 'lucide-react';
+import { Linkedin, Facebook, Twitter, MessageCircle, Trash2, Github, Instagram } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 export interface SocialLink {
@@ -15,15 +16,19 @@ export interface SocialLink {
 
 interface SocialLinksTabProps {
   initialLinks?: SocialLink[];
+  onSocialLinksChange?: (links: SocialLink[]) => void;
 }
 
 const platformOptions = [
   { value: 'linkedin', label: 'LinkedIn', icon: Linkedin },
+  { value: 'twitter', label: 'X (Twitter)', icon: Twitter },
   { value: 'facebook', label: 'Facebook', icon: Facebook },
+  { value: 'instagram', label: 'Instagram', icon: Instagram },
+  { value: 'github', label: 'GitHub', icon: Github },
   { value: 'medium', label: 'Medium', icon: MessageCircle }
 ];
 
-export function SocialLinksTab({ initialLinks = [] }: SocialLinksTabProps) {
+export function SocialLinksTab({ initialLinks = [], onSocialLinksChange }: SocialLinksTabProps) {
   const [links, setLinks] = useState<SocialLink[]>(initialLinks);
   const [newLink, setNewLink] = useState({ platform: 'linkedin', url: '' });
 
@@ -47,18 +52,29 @@ export function SocialLinksTab({ initialLinks = [] }: SocialLinksTabProps) {
       icon: platform.icon
     };
 
-    setLinks([...links, newLinkObj]);
+    const updatedLinks = [...links, newLinkObj];
+    setLinks(updatedLinks);
     setNewLink({ platform: 'linkedin', url: '' });
     toast.success("Social link added");
+    
+    if (onSocialLinksChange) {
+      onSocialLinksChange(updatedLinks);
+    }
   };
 
   const handleDeleteLink = (id: string) => {
-    setLinks(links.filter(link => link.id !== id));
+    const updatedLinks = links.filter(link => link.id !== id);
+    setLinks(updatedLinks);
     toast.success("Social link removed");
+    
+    if (onSocialLinksChange) {
+      onSocialLinksChange(updatedLinks);
+    }
   };
 
   const getPlatformIcon = (platform: string) => {
-    const option = platformOptions.find(p => p.label.toLowerCase() === platform.toLowerCase());
+    const option = platformOptions.find(p => p.label.toLowerCase() === platform.toLowerCase() || 
+                                          p.label.toLowerCase().includes(platform.toLowerCase()));
     return option ? option.icon : Linkedin;
   };
 
