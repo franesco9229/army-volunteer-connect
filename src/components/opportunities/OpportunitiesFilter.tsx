@@ -3,8 +3,6 @@ import React, { useState } from 'react';
 import { Search, Filter, X, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { 
   Sheet, 
   SheetContent, 
@@ -22,7 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+import { SkillsFilterSection } from './filters/SkillsFilterSection';
+import { ActiveFilterBadges } from './filters/ActiveFilterBadges';
+import { ROLE_TYPE_OPTIONS, TIME_COMMITMENT_OPTIONS } from './filters/FilterOptionsList';
 
 interface OpportunitiesFilterProps {
   searchTerm: string;
@@ -39,25 +39,6 @@ interface OpportunitiesFilterProps {
   onAddSkill: () => void;
 }
 
-// Predefined options
-const TIME_COMMITMENT_OPTIONS = [
-  { label: "Any Time", value: "any" },
-  { label: "Less than 5 hours/week", value: "under5" },
-  { label: "5-10 hours/week", value: "5to10" },
-  { label: "10-20 hours/week", value: "10to20" },
-  { label: "20+ hours/week", value: "over20" }
-];
-
-const ROLE_TYPE_OPTIONS = [
-  { label: "Any Role", value: "any" },
-  { label: "Developer", value: "developer" },
-  { label: "Designer", value: "designer" },
-  { label: "Project Manager", value: "project-manager" },
-  { label: "Business Analyst", value: "business-analyst" },
-  { label: "Marketing", value: "marketing" },
-  { label: "Content Creator", value: "content-creator" }
-];
-
 export function OpportunitiesFilter({
   searchTerm,
   onSearchChange,
@@ -73,17 +54,6 @@ export function OpportunitiesFilter({
   onAddSkill
 }: OpportunitiesFilterProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  
-  const handleRemoveSkill = (skillToRemove: string) => {
-    onSkillsChange(selectedSkills.filter(skill => skill !== skillToRemove));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && skillInputValue.trim() && selectedSkills.length < 2) {
-      e.preventDefault();
-      onAddSkill();
-    }
-  };
   
   // Count active filters
   const activeFilterCount = 
@@ -124,44 +94,13 @@ export function OpportunitiesFilter({
           </SheetHeader>
           
           <div className="py-6 space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium">Skills (max 2)</h3>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {selectedSkills.map(skill => (
-                  <Badge 
-                    key={skill} 
-                    variant="secondary"
-                    className="flex items-center gap-1"
-                  >
-                    {skill}
-                    <X 
-                      className="h-3 w-3 cursor-pointer" 
-                      onClick={() => handleRemoveSkill(skill)} 
-                    />
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Type a skill..."
-                  value={skillInputValue}
-                  onChange={(e) => onSkillInputChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  disabled={selectedSkills.length >= 2}
-                />
-                <Button 
-                  type="button" 
-                  size="sm" 
-                  onClick={onAddSkill} 
-                  disabled={!skillInputValue.trim() || selectedSkills.length >= 2}
-                >
-                  Add
-                </Button>
-              </div>
-              {selectedSkills.length >= 2 && (
-                <p className="text-xs text-muted-foreground">Maximum of 2 skills reached</p>
-              )}
-            </div>
+            <SkillsFilterSection 
+              selectedSkills={selectedSkills}
+              onSkillsChange={onSkillsChange}
+              skillInputValue={skillInputValue}
+              onSkillInputChange={onSkillInputChange}
+              onAddSkill={onAddSkill}
+            />
             
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Role Type</h3>
@@ -215,49 +154,14 @@ export function OpportunitiesFilter({
       </Sheet>
 
       {/* Show active filters on mobile */}
-      {activeFilterCount > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
-          {selectedSkills.map(skill => (
-            <Badge 
-              key={skill}
-              variant="outline" 
-              className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
-            >
-              {skill}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => handleRemoveSkill(skill)} 
-              />
-            </Badge>
-          ))}
-
-          {roleType !== 'any' && (
-            <Badge 
-              variant="outline" 
-              className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
-            >
-              {ROLE_TYPE_OPTIONS.find(o => o.value === roleType)?.label}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => onRoleTypeChange('any')} 
-              />
-            </Badge>
-          )}
-
-          {timeCommitment !== 'any' && (
-            <Badge 
-              variant="outline" 
-              className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
-            >
-              {TIME_COMMITMENT_OPTIONS.find(o => o.value === timeCommitment)?.label}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => onTimeCommitmentChange('any')} 
-              />
-            </Badge>
-          )}
-        </div>
-      )}
+      <ActiveFilterBadges
+        selectedSkills={selectedSkills}
+        onSkillsChange={onSkillsChange}
+        timeCommitment={timeCommitment}
+        onTimeCommitmentChange={onTimeCommitmentChange}
+        roleType={roleType}
+        onRoleTypeChange={onRoleTypeChange}
+      />
     </div>
   );
 }

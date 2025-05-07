@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader, Lock, Mail } from 'lucide-react';
+import { Loader, Lock, Mail, ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 export default function Login() {
@@ -36,9 +36,22 @@ export default function Login() {
     }
   };
 
+  const handleGoBack = () => {
+    navigate('/opportunities');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sta-purple-dark to-sta-purple/20 p-4">
       <div className="w-full max-w-md">
+        <Button 
+          variant="ghost" 
+          className="mb-4 text-white hover:text-white hover:bg-sta-purple/30"
+          onClick={handleGoBack}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Opportunities
+        </Button>
+        
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-sta-purple">Welcome Back</h1>

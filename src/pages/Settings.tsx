@@ -9,8 +9,7 @@ import {
   Sliders,
   LogOut,
   Moon,
-  Sun,
-  Link
+  Sun
 } from 'lucide-react';
 import { 
   Card, 
@@ -41,20 +40,14 @@ import { useForm } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { useTheme } from "@/components/ThemeProvider";
-import { SocialLinksTab } from "@/components/profile/SocialLinksTab";
+import { TwoFactorAuth } from '@/components/profile/TwoFactorAuth';
 
 const Settings = () => {
   const { toast } = useToast();
   const { theme, toggleTheme } = useTheme();
+  const [isCompactMode, setIsCompactMode] = React.useState(false);
+  const [isLargeText, setIsLargeText] = React.useState(false);
   
-  const profileForm = useForm({
-    defaultValues: {
-      name: "John Doe",
-      email: "john.doe@example.com",
-      bio: "Software Engineer passionate about volunteering"
-    }
-  });
-
   const passwordForm = useForm({
     defaultValues: {
       currentPassword: "",
@@ -62,14 +55,6 @@ const Settings = () => {
       confirmPassword: ""
     }
   });
-
-  const handleProfileSubmit = (data: any) => {
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been updated successfully."
-    });
-    console.log("Profile data:", data);
-  };
 
   const handlePasswordSubmit = (data: any) => {
     if (data.newPassword !== data.confirmPassword) {
@@ -88,24 +73,36 @@ const Settings = () => {
     console.log("Password data:", data);
   };
 
+  // Apply compact mode
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (isCompactMode) {
+      root.classList.add('compact-mode');
+    } else {
+      root.classList.remove('compact-mode');
+    }
+  }, [isCompactMode]);
+
+  // Apply large text
+  React.useEffect(() => {
+    const root = document.documentElement;
+    if (isLargeText) {
+      root.classList.add('large-text');
+    } else {
+      root.classList.remove('large-text');
+    }
+  }, [isLargeText]);
+
   return (
     <AppLayout>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">Settings</h1>
         
-        <Tabs defaultValue="profile" className="space-y-6">
+        <Tabs defaultValue="account" className="space-y-6">
           <TabsList className="w-full md:w-auto mb-4">
-            <TabsTrigger value="profile" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>Profile</span>
-            </TabsTrigger>
             <TabsTrigger value="account" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
               <span>Account</span>
-            </TabsTrigger>
-            <TabsTrigger value="social" className="flex items-center gap-2">
-              <Link className="h-4 w-4" />
-              <span>Social</span>
             </TabsTrigger>
             <TabsTrigger value="notifications" className="flex items-center gap-2">
               <Bell className="h-4 w-4" />
@@ -116,67 +113,6 @@ const Settings = () => {
               <span>Display</span>
             </TabsTrigger>
           </TabsList>
-
-          {/* Profile Tab */}
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
-                  Manage your personal information and how it appears to others
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...profileForm}>
-                  <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-6">
-                    <FormField
-                      control={profileForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={profileForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address</FormLabel>
-                          <FormControl>
-                            <Input {...field} type="email" />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={profileForm.control}
-                      name="bio"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Bio</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            A brief description about yourself
-                          </FormDescription>
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <Button type="submit">Update Profile</Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Account Tab */}
           <TabsContent value="account">
@@ -236,6 +172,8 @@ const Settings = () => {
                 </CardContent>
               </Card>
               
+              <TwoFactorAuth />
+              
               <Card>
                 <CardHeader>
                   <CardTitle>Account Management</CardTitle>
@@ -285,11 +223,6 @@ const Settings = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-          
-          {/* Social Links Tab */}
-          <TabsContent value="social">
-            <SocialLinksTab />
           </TabsContent>
 
           {/* Notifications Tab */}
@@ -405,7 +338,10 @@ const Settings = () => {
                           Display more content by reducing spacing
                         </p>
                       </div>
-                      <Switch />
+                      <Switch 
+                        checked={isCompactMode}
+                        onCheckedChange={setIsCompactMode}
+                      />
                     </div>
                     
                     <div className="flex items-center justify-between">
@@ -415,7 +351,10 @@ const Settings = () => {
                           Increase text size for better readability
                         </p>
                       </div>
-                      <Switch />
+                      <Switch 
+                        checked={isLargeText}
+                        onCheckedChange={setIsLargeText}
+                      />
                     </div>
                   </div>
                   

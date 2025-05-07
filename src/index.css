@@ -8,80 +8,67 @@
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 255 56% 75%; /* STA purple */
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 258 29% 54%; /* STA secondary purple */
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 266 76% 79%; /* STA light purple */
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%; /* STA red */
-    --destructive-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 255 56% 75%; /* STA purple */
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 215 20.2% 65.1%;
 
     --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 255 56% 75%; /* STA purple */
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    --sta-purple: 258 77% 74%;
+    --sta-purple-dark: 258 47% 34%;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 255 56% 75%; /* STA purple */
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 258 29% 54%; /* STA secondary purple */
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 266 76% 79%; /* STA light purple */
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 255 56% 75%;
-    
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 255 56% 75%; /* STA purple */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 85.7% 97.3%;
+
+    --ring: 217.2 32.6% 17.5%;
   }
 }
 
@@ -89,43 +76,83 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-@layer components {
-  .hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
-  
-  .card-transition {
-    @apply transition-all duration-300 hover:shadow-lg;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  
-  .sta-gradient {
-    @apply bg-gradient-to-br from-sta-purple to-sta-purple-dark;
-  }
-  
-  .sta-button {
-    @apply bg-sta-purple hover:bg-sta-purple-dark text-white;
-  }
-  
-  /* Scottish Tech Army minimalist design */
-  .sta-card {
-    @apply border border-sta-purple/20 hover:border-sta-purple/50 shadow-sm transition-all duration-300;
-  }
-  
-  .sta-header {
-    @apply bg-gradient-to-r from-transparent to-sta-purple/5;
-  }
-  
-  .sta-icon {
-    @apply text-sta-purple;
-  }
-  
-  .sta-border {
-    @apply border-sta-purple/10;
-  }
+}
+
+/* Compact mode styles */
+html.compact-mode {
+  --compact-scale: 0.9;
+}
+
+html.compact-mode .card {
+  padding: 0.75rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+html.compact-mode h1, 
+html.compact-mode h2, 
+html.compact-mode h3 {
+  margin-bottom: 0.5rem !important;
+}
+
+html.compact-mode p {
+  margin-bottom: 0.5rem !important;
+  line-height: 1.4 !important;
+}
+
+html.compact-mode .container {
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+}
+
+html.compact-mode .space-y-6 > * + * {
+  margin-top: 1rem !important;
+}
+
+html.compact-mode .space-y-8 > * + * {
+  margin-top: 1.5rem !important;
+}
+
+/* Large text mode */
+html.large-text {
+  font-size: 18px !important;
+}
+
+html.large-text h1 {
+  font-size: 2.5rem !important;
+}
+
+html.large-text h2 {
+  font-size: 2rem !important;
+}
+
+html.large-text h3 {
+  font-size: 1.5rem !important;
+}
+
+html.large-text p,
+html.large-text span,
+html.large-text button,
+html.large-text input,
+html.large-text select,
+html.large-text textarea {
+  font-size: 1.1rem !important;
 }
