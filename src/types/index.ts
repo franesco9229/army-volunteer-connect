@@ -20,9 +20,9 @@ export interface Skill {
 export enum SkillLevel {
   None = "None",
   Learning = "Learning",
-  Familiar = "Familiar", // Added missing skill level
-  Competent = "Competent",
-  Proficient = "Proficient", // Added missing skill level
+  Familiar = "Familiar",
+  Competent = "Competent", 
+  Proficient = "Proficient",
   Advanced = "Advanced",
   Expert = "Expert",
   Teacher = "I can teach others"
@@ -50,8 +50,8 @@ export interface Opportunity {
 
 export enum OpportunityStatus {
   Open = "Open",
-  Active = "active",  // Added to match the mockOpportunities data
-  Closed = "closed",  // Added to match the mockOpportunities data
+  Active = "active",  // This matches the lowercase "active" in the mock data
+  Closed = "closed",  // This matches the lowercase "closed" in the mock data
   Filled = "Filled",
   Completed = "Completed"
 }
@@ -64,7 +64,7 @@ export interface Application {
   status: ApplicationStatus;
   appliedDate: string;
   notes?: string;
-  lastUpdated?: string; // Added missing property
+  lastUpdated?: string;
 }
 
 export enum ApplicationStatus {
@@ -81,7 +81,7 @@ export interface VolunteeringRecord {
   userId: string;
   opportunityId: string;
   hoursContributed: number;
-  hoursLogged?: number; // Added for compatibility
+  hoursLogged?: number;
   startDate: string;
   endDate?: string;
   status: VolunteeringRecordStatus;
