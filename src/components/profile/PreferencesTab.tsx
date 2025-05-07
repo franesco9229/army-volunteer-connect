@@ -18,30 +18,46 @@ interface Preferences {
 
 interface PreferencesTabProps {
   initialPreferences: Preferences;
+  onPreferencesChange?: (updatedPreferences: Preferences) => void;
 }
 
-export function PreferencesTab({ initialPreferences }: PreferencesTabProps) {
+export function PreferencesTab({ initialPreferences, onPreferencesChange }: PreferencesTabProps) {
   const [preferences, setPreferences] = useState<Preferences>(initialPreferences);
 
   const handlePreferenceChange = (name: string, value: boolean | number) => {
-    setPreferences(prev => ({
-      ...prev,
+    const updatedPreferences = {
+      ...preferences,
       [name]: value
-    }));
+    };
+    setPreferences(updatedPreferences);
+    
+    if (onPreferencesChange) {
+      onPreferencesChange(updatedPreferences);
+    }
   };
 
   const handleAvailabilityChange = (day: string, value: boolean) => {
-    setPreferences(prev => ({
-      ...prev,
+    const updatedPreferences = {
+      ...preferences,
       availability: {
-        ...prev.availability,
+        ...preferences.availability,
         [day]: value
       }
-    }));
+    };
+    
+    setPreferences(updatedPreferences);
+    
+    if (onPreferencesChange) {
+      onPreferencesChange(updatedPreferences);
+    }
   };
 
   const handleSavePreferences = () => {
     toast.success("Preferences saved successfully");
+    
+    if (onPreferencesChange) {
+      onPreferencesChange(preferences);
+    }
   };
 
   return (
