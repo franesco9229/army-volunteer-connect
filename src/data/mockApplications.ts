@@ -1,5 +1,5 @@
 
-import { Application, ApplicationStatus, VolunteeringRecord } from '@/types';
+import { Application, ApplicationStatus, VolunteeringRecord, VolunteeringRecordStatus } from '@/types';
 import { mockOpportunities } from './mockOpportunities';
 
 // Mock applications
@@ -57,9 +57,11 @@ export const mockVolunteeringRecords: VolunteeringRecord[] = [
     id: "record-1",
     userId: "user-1",
     opportunityId: "opp-6",
+    hoursContributed: 45,
     hoursLogged: 45,
     startDate: new Date(2025, 2, 20).toISOString(),
     endDate: new Date(2025, 3, 15).toISOString(),
+    status: VolunteeringRecordStatus.Completed,
     feedback: "Great work analyzing the health data. Your insights were valuable for our recommendations.",
     impact: "Helped identify key trends that informed policy decisions affecting underserved communities."
   },
@@ -67,9 +69,11 @@ export const mockVolunteeringRecords: VolunteeringRecord[] = [
     id: "record-2",
     userId: "user-1",
     opportunityId: "opp-7",
+    hoursContributed: 65,
     hoursLogged: 65,
     startDate: new Date(2025, 3, 5).toISOString(),
     endDate: new Date(2025, 4, 1).toISOString(),
+    status: VolunteeringRecordStatus.Completed,
     feedback: "Excellent contribution to the mobile app development. The app is now used by hundreds of community members.",
     impact: "Developed key features that improved access to support services for 500+ community members."
   }
@@ -112,4 +116,49 @@ export const updateApplicationStatus = async (
   await new Promise(resolve => setTimeout(resolve, 300));
   
   return updatedApplication;
+};
+
+// Add missing functions
+export const applyForOpportunity = async (userId: string, opportunityId: string): Promise<Application> => {
+  // Create a new application
+  const newApplication: Application = {
+    id: `app-${mockApplications.length + 1}`,
+    userId,
+    opportunityId,
+    status: ApplicationStatus.Pending,
+    appliedDate: new Date().toISOString(),
+    lastUpdated: new Date().toISOString()
+  };
+  
+  // Add to mock applications
+  mockApplications.push(newApplication);
+  
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 500));
+  
+  return newApplication;
+};
+
+export const updateVolunteerHours = async (recordId: string, hours: number): Promise<VolunteeringRecord> => {
+  // Find record
+  const recordIndex = mockVolunteeringRecords.findIndex(record => record.id === recordId);
+  
+  if (recordIndex === -1) {
+    throw new Error("Volunteering record not found");
+  }
+  
+  // Update hours
+  const updatedRecord = {
+    ...mockVolunteeringRecords[recordIndex],
+    hoursContributed: hours,
+    hoursLogged: hours
+  };
+  
+  // In a real app, this would update the database
+  mockVolunteeringRecords[recordIndex] = updatedRecord;
+  
+  // Simulate API call delay
+  await new Promise(resolve => setTimeout(resolve, 300));
+  
+  return updatedRecord;
 };

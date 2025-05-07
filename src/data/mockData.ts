@@ -25,5 +25,7 @@ export {
   mockVolunteeringRecords,
   fetchUserApplications, 
   fetchUserVolunteeringRecords,
-  updateApplicationStatus
+  updateApplicationStatus,
+  applyForOpportunity,
+  updateVolunteerHours
 } from './mockApplications';
