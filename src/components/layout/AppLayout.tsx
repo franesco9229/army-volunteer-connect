@@ -25,7 +25,9 @@ export default function AppLayout({ children }: AppLayoutProps) {
               <Menu size={24} />
             </SheetTrigger>
             <SheetContent side="left" className="p-0 w-[80%] max-w-[300px]">
-              <AppSidebar />
+              <div className="h-full">
+                <AppSidebar />
+              </div>
             </SheetContent>
           </Sheet>
         </div>
