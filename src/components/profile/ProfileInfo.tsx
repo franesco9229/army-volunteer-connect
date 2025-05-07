@@ -1,9 +1,7 @@
 
 import React from 'react';
-import { Edit } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
-interface ProfileViewProps {
+interface ProfileInfoProps {
   name: string;
   email: string;
   bio: string;
@@ -15,20 +13,11 @@ interface ProfileViewProps {
       [key: string]: boolean;
     }
   };
-  isOwnProfile: boolean;
-  onEditToggle: () => void;
 }
 
-export function ProfileView({ 
-  name, 
-  email, 
-  bio, 
-  preferences, 
-  isOwnProfile, 
-  onEditToggle 
-}: ProfileViewProps) {
+export function ProfileInfo({ name, email, bio, preferences }: ProfileInfoProps) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 text-center md:text-left">
       <div>
         <h2 className="text-2xl font-bold">{name}</h2>
         <div className="flex items-center justify-center md:justify-start mt-1 text-muted-foreground">
@@ -81,13 +70,6 @@ export function ProfileView({
           </span>
         </div>
       </div>
-      
-      {isOwnProfile && (
-        <Button variant="outline" className="mt-2" onClick={onEditToggle}>
-          <Edit className="h-4 w-4 mr-2" />
-          <span>Edit Profile</span>
-        </Button>
-      )}
     </div>
   );
 }
