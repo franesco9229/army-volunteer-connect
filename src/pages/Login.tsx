@@ -16,8 +16,8 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Get the redirect URL from location state or default to opportunities
-  const from = location.state?.from || '/opportunities';
+  // Get the redirect URL from location state or default to profile
+  const from = location.state?.from || '/profile';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
