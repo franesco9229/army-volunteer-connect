@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SkillBadge } from '@/components/ui/SkillBadge';
 import { Clock, Building, Calendar, Briefcase } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -33,8 +34,15 @@ export function OpportunityCard({
   } = opportunity;
 
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   const handleApply = () => {
+    if (!isAuthenticated) {
+      // Redirect to login page with the intended destination
+      navigate('/login', { state: { from: `/opportunities` } });
+      return;
+    }
+
     if (onApply) {
       onApply(id);
     }
@@ -90,7 +98,7 @@ export function OpportunityCard({
         {isOpen && (
           <Button 
             onClick={handleApply} 
-            disabled={hasApplied || !isAuthenticated}
+            disabled={hasApplied}
             variant={hasApplied ? "outline" : "default"}
             className={hasApplied 
               ? "border-sta-purple text-sta-purple" 
