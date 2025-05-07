@@ -8,9 +8,6 @@ import {
   FileText, 
   Settings,
   LogOut,
-  Linkedin,
-  Facebook,
-  MessageCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -24,7 +21,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-  SidebarTrigger,
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
@@ -63,7 +59,7 @@ const navItems = [
 
 export function AppSidebar() {
   return (
-    <Sidebar>
+    <Sidebar className="h-full border-r">
       <SidebarHeader className="flex items-center p-4">
         <div className="flex items-center space-x-2">
           <img 
@@ -73,7 +69,6 @@ export function AppSidebar() {
           />
           <span className="font-bold text-lg">Volunteer App</span>
         </div>
-        <SidebarTrigger className="ml-auto md:hidden" />
       </SidebarHeader>
       
       <SidebarContent>
