@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,7 +9,6 @@ import { TwoFactorAuth } from '@/components/profile/TwoFactorAuth';
 import { Skill, SkillLevel } from '@/types';
 import { fetchUserSkills, updateUserSkill, mockCurrentUser } from '@/data/mockData';
 import { toast } from '@/components/ui/sonner';
-import { ProfilePrivacyOption } from '@/components/profile/ProfilePrivacyOption';
 import { 
   Card, 
   CardContent, 
@@ -22,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Linkedin, Twitter, Github, Facebook, Instagram } from 'lucide-react';
+import { SkillBadge } from '@/components/ui/SkillBadge';
 
 export default function Profile() {
   const [skills, setSkills] = useState<Skill[]>([]);
