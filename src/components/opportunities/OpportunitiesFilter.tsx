@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { SkillsFilterSection } from './filters/SkillsFilterSection';
 import { ActiveFilterBadges } from './filters/ActiveFilterBadges';
 import { TIME_COMMITMENT_OPTIONS, useProfileSkillsLabel } from './filters/FilterOptionsList';
 import { techRoles } from '@/data/techRoles';
@@ -134,12 +133,6 @@ export function OpportunitiesFilter({
                 {useProfileSkillsLabel}
               </label>
             </div>
-            
-            <SkillsFilterSection 
-              title="Primary Skills (max 2)"
-              selectedSkills={selectedSkills}
-              onSkillsChange={onSkillsChange}
-            />
             
             <div className="space-y-4">
               <h3 className="text-sm font-medium">Select 2 Additional skills:</h3>
