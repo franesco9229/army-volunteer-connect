@@ -24,6 +24,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SkillsFilterSection } from './filters/SkillsFilterSection';
 import { ActiveFilterBadges } from './filters/ActiveFilterBadges';
 import { TIME_COMMITMENT_OPTIONS, useProfileSkillsLabel } from './filters/FilterOptionsList';
+import { techRoles } from '@/data/techRoles';
+import { additionalSkills } from '@/data/additionalSkills';
+
+// Combine tech roles and additional skills
+const allSkillOptions = [...techRoles, ...additionalSkills];
 
 interface OpportunitiesFilterProps {
   searchTerm: string;
@@ -54,12 +59,34 @@ export function OpportunitiesFilter({
 }: OpportunitiesFilterProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
+  const handleAddSecondarySkill = (index: number, value: string) => {
+    if (value) {
+      const newSkills = [...secondarySkills];
+      
+      // Remove the value if it's already in the other position
+      const otherIndex = index === 0 ? 1 : 0;
+      if (newSkills[otherIndex] === value) {
+        newSkills[otherIndex] = "";
+      }
+      
+      newSkills[index] = value;
+      // Filter out empty strings when updating
+      onSecondarySkillsChange(newSkills.filter(skill => skill !== ""));
+    }
+  };
+  
   // Count active filters
   const activeFilterCount = 
     (selectedSkills.length > 0 ? 1 : 0) + 
     (secondarySkills.length > 0 ? 1 : 0) + 
     (timeCommitment !== 'any' ? 1 : 0) +
     (useProfileSkills ? 1 : 0);
+
+  // Get the skill label for display
+  const getSkillLabel = (value: string) => {
+    const skill = allSkillOptions.find(skill => skill.value === value);
+    return skill ? skill.label : value;
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-4">
@@ -114,11 +141,55 @@ export function OpportunitiesFilter({
               onSkillsChange={onSkillsChange}
             />
             
-            <SkillsFilterSection 
-              title="Additional Skills (max 2)"
-              selectedSkills={secondarySkills}
-              onSkillsChange={onSecondarySkillsChange}
-            />
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium">Select 2 Additional skills:</h3>
+              
+              <div className="grid grid-cols-1 gap-2">
+                {/* First Dropdown */}
+                <Select
+                  value={secondarySkills[0] || ""}
+                  onValueChange={(value) => handleAddSecondarySkill(0, value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a skill..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    <SelectItem value="">None</SelectItem>
+                    {allSkillOptions.map(skill => (
+                      <SelectItem 
+                        key={skill.value} 
+                        value={skill.value}
+                        disabled={secondarySkills[1] === skill.value}
+                      >
+                        {skill.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Second Dropdown */}
+                <Select
+                  value={secondarySkills[1] || ""}
+                  onValueChange={(value) => handleAddSecondarySkill(1, value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a skill..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    <SelectItem value="">None</SelectItem>
+                    {allSkillOptions.map(skill => (
+                      <SelectItem 
+                        key={skill.value} 
+                        value={skill.value}
+                        disabled={secondarySkills[0] === skill.value}
+                      >
+                        {skill.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
             
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Time Commitment</h3>

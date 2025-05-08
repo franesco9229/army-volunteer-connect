@@ -3,6 +3,11 @@ import React from 'react';
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { TIME_COMMITMENT_OPTIONS, useProfileSkillsLabel } from './FilterOptionsList';
+import { techRoles } from '@/data/techRoles';
+import { additionalSkills } from '@/data/additionalSkills';
+
+// Combine tech roles and additional skills
+const allSkillOptions = [...techRoles, ...additionalSkills];
 
 interface ActiveFilterBadgesProps {
   selectedSkills: string[];
@@ -31,6 +36,12 @@ export function ActiveFilterBadges({
     } else {
       onSecondarySkillsChange(secondarySkills.filter(skill => skill !== skillToRemove));
     }
+  };
+
+  // Get skill label for display
+  const getSkillLabel = (value: string) => {
+    const skill = allSkillOptions.find(skill => skill.value === value);
+    return skill ? skill.label : value;
   };
 
   const activeFilterCount = 
@@ -64,7 +75,7 @@ export function ActiveFilterBadges({
           variant="outline" 
           className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
         >
-          Primary: {skill}
+          Primary: {getSkillLabel(skill)}
           <X 
             className="h-3 w-3 cursor-pointer" 
             onClick={() => handleRemoveSkill(skill, true)} 
@@ -78,7 +89,7 @@ export function ActiveFilterBadges({
           variant="outline" 
           className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
         >
-          Additional: {skill}
+          Additional: {getSkillLabel(skill)}
           <X 
             className="h-3 w-3 cursor-pointer" 
             onClick={() => handleRemoveSkill(skill, false)} 
