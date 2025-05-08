@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Opportunity } from '@/types';
@@ -36,6 +36,7 @@ export function OpportunityCard({
   } = opportunity;
 
   const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
@@ -52,7 +53,16 @@ export function OpportunityCard({
   };
 
   const handleVideoToggle = () => {
-    setIsPlaying(!isPlaying);
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(err => {
+          console.error("Error playing video:", err);
+        });
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
 
   // Show the Apply button for both "Open" and "Active" statuses
@@ -78,9 +88,9 @@ export function OpportunityCard({
               <AspectRatio ratio={16/9} className="bg-muted">
                 {isPlaying ? (
                   <video 
+                    ref={videoRef}
                     src={video.url} 
                     controls 
-                    autoPlay 
                     className="w-full h-full object-cover"
                     onEnded={() => setIsPlaying(false)}
                   />
@@ -158,7 +168,7 @@ export function OpportunityCard({
               ? "border-sta-purple text-sta-purple" 
               : "bg-sta-purple hover:bg-sta-purple/90 text-white"}
           >
-            {hasApplied ? 'Applied' : isAuthenticated ? 'Apply Now' : 'Login to Apply'}
+            {hasApplied ? 'Applied' : 'Apply'}
           </Button>
         )}
       </CardFooter>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Bell, 
@@ -41,6 +40,7 @@ import { useToast } from "@/components/ui/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { useTheme } from "@/components/ThemeProvider";
 import { TwoFactorAuth } from '@/components/profile/TwoFactorAuth';
+import { ProfilePrivacyOption, Label } from '@/components/profile/ProfilePrivacyOption';
 
 const Settings = () => {
   const { toast } = useToast();
@@ -111,6 +111,14 @@ const Settings = () => {
             <TabsTrigger value="display" className="flex items-center gap-2">
               <Eye className="h-4 w-4" />
               <span>Display</span>
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span>Privacy</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="flex items-center gap-2">
+              <Sliders className="h-4 w-4" />
+              <span>Security</span>
             </TabsTrigger>
           </TabsList>
 
@@ -386,6 +394,140 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          {/* Privacy Tab - Moved from Profile page */}
+          <TabsContent value="privacy">
+            <Card>
+              <CardHeader>
+                <CardTitle>Privacy Settings</CardTitle>
+                <CardDescription>
+                  Control what information is visible to other users
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h3 className="font-medium mb-3">Profile Visibility</h3>
+                  <div className="space-y-3">
+                    <ProfilePrivacyOption
+                      id="show-volunteer-hours"
+                      label="Show total volunteer hours on profile"
+                      checked={privacySettings?.showVolunteerHours || false}
+                      onCheckedChange={(checked) => handlePrivacyChange?.('showVolunteerHours', checked)}
+                    />
+                    
+                    <ProfilePrivacyOption
+                      id="show-skills"
+                      label="Make skills visible to others"
+                      description="Your skills will be visible on your public profile"
+                      checked={privacySettings?.showSkills || false}
+                      onCheckedChange={(checked) => handlePrivacyChange?.('showSkills', checked)}
+                    />
+                    
+                    <ProfilePrivacyOption
+                      id="show-availability"
+                      label="Show availability to project managers"
+                      checked={privacySettings?.showAvailability || false}
+                      onCheckedChange={(checked) => handlePrivacyChange?.('showAvailability', checked)}
+                    />
+                    
+                    <ProfilePrivacyOption
+                      id="show-preferences"
+                      label="Show mentoring preferences"
+                      description="Other volunteers can see if you are open to mentoring"
+                      checked={privacySettings?.showPreferences || false}
+                      onCheckedChange={(checked) => handlePrivacyChange?.('showPreferences', checked)}
+                    />
+                    
+                    <ProfilePrivacyOption
+                      id="show-social-links"
+                      label="Show social media links"
+                      checked={privacySettings?.showSocialLinks || false}
+                      onCheckedChange={(checked) => handlePrivacyChange?.('showSocialLinks', checked)}
+                    />
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-4">
+                  <h3 className="font-medium">Email Preferences</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="contact-email">Contact Email</Label>
+                    <Input id="contact-email" defaultValue={user?.email || ""} />
+                    
+                    <ProfilePrivacyOption
+                      id="use-contact-email"
+                      label="Use this email for notifications"
+                      checked={true}
+                      onCheckedChange={() => {}}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Security Tab - Added TwoFactorAuth component here */}
+          <TabsContent value="security">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Change Password</CardTitle>
+                  <CardDescription>
+                    Update your password to keep your account secure
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Form {...passwordForm}>
+                    <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-6">
+                      <FormField
+                        control={passwordForm.control}
+                        name="currentPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Current Password</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="password" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={passwordForm.control}
+                        name="newPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>New Password</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="password" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={passwordForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Confirm New Password</FormLabel>
+                            <FormControl>
+                              <Input {...field} type="password" />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <Button type="submit">Update Password</Button>
+                    </form>
+                  </Form>
+                </CardContent>
+              </Card>
+              
+              <TwoFactorAuth />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

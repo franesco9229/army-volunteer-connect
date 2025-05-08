@@ -6,21 +6,9 @@ import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { SkillsTab } from '@/components/profile/SkillsTab';
 import { PreferencesTab } from '@/components/profile/PreferencesTab';
 import { SocialLinksTab, SocialLink } from '@/components/profile/SocialLinksTab';
-import { TwoFactorAuth } from '@/components/profile/TwoFactorAuth';
 import { Skill, SkillLevel } from '@/types';
 import { fetchUserSkills, updateUserSkill, mockCurrentUser } from '@/data/mockData';
 import { toast } from '@/components/ui/sonner';
-import { ProfilePrivacyOption } from '@/components/profile/ProfilePrivacyOption';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription 
-} from "@/components/ui/card";
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { Linkedin, Twitter, Github, Facebook, Instagram } from 'lucide-react';
 import { SkillBadge } from '@/components/ui/SkillBadge';
 
@@ -41,14 +29,6 @@ export default function Profile() {
       saturday: false,
       sunday: false,
     }
-  });
-  
-  const [privacySettings, setPrivacySettings] = useState({
-    showVolunteerHours: true,
-    showSkills: true,
-    showAvailability: false,
-    showPreferences: false,
-    showSocialLinks: true
   });
   
   // Initial social links
@@ -95,14 +75,6 @@ export default function Profile() {
     setSkills(prev => [...prev, newSkillObj]);
     toast.success("Skill added successfully");
   };
-
-  const handlePrivacyChange = (setting: keyof typeof privacySettings, value: boolean) => {
-    setPrivacySettings(prev => ({
-      ...prev,
-      [setting]: value
-    }));
-    toast.success(`Privacy setting updated`);
-  };
   
   const handleSocialLinksChange = (updatedLinks: SocialLink[]) => {
     setSocialLinks(updatedLinks);
@@ -132,8 +104,6 @@ export default function Profile() {
             <TabsTrigger value="skills">Skills</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
             <TabsTrigger value="social">Social Links</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="privacy">Privacy</TabsTrigger>
           </TabsList>
           
           <TabsContent value="skills" className="mt-6">
@@ -156,81 +126,6 @@ export default function Profile() {
               initialLinks={socialLinks}
               onSocialLinksChange={handleSocialLinksChange}
             />
-          </TabsContent>
-
-          <TabsContent value="security" className="mt-6">
-            <TwoFactorAuth />
-          </TabsContent>
-          
-          <TabsContent value="privacy" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Privacy Settings</CardTitle>
-                <CardDescription>
-                  Control what information is visible to other users
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-medium mb-3">Profile Visibility</h3>
-                  <div className="space-y-3">
-                    <ProfilePrivacyOption
-                      id="show-volunteer-hours"
-                      label="Show total volunteer hours on profile"
-                      checked={privacySettings.showVolunteerHours}
-                      onCheckedChange={(checked) => handlePrivacyChange('showVolunteerHours', checked)}
-                    />
-                    
-                    <ProfilePrivacyOption
-                      id="show-skills"
-                      label="Make skills visible to others"
-                      description="Your skills will be visible on your public profile"
-                      checked={privacySettings.showSkills}
-                      onCheckedChange={(checked) => handlePrivacyChange('showSkills', checked)}
-                    />
-                    
-                    <ProfilePrivacyOption
-                      id="show-availability"
-                      label="Show availability to project managers"
-                      checked={privacySettings.showAvailability}
-                      onCheckedChange={(checked) => handlePrivacyChange('showAvailability', checked)}
-                    />
-                    
-                    <ProfilePrivacyOption
-                      id="show-preferences"
-                      label="Show mentoring preferences"
-                      description="Other volunteers can see if you are open to mentoring"
-                      checked={privacySettings.showPreferences}
-                      onCheckedChange={(checked) => handlePrivacyChange('showPreferences', checked)}
-                    />
-                    
-                    <ProfilePrivacyOption
-                      id="show-social-links"
-                      label="Show social media links"
-                      checked={privacySettings.showSocialLinks}
-                      onCheckedChange={(checked) => handlePrivacyChange('showSocialLinks', checked)}
-                    />
-                  </div>
-                </div>
-                
-                <Separator />
-                
-                <div className="space-y-4">
-                  <h3 className="font-medium">Email Preferences</h3>
-                  <div className="space-y-2">
-                    <Label htmlFor="contact-email">Contact Email</Label>
-                    <Input id="contact-email" defaultValue={mockCurrentUser.email} />
-                    
-                    <ProfilePrivacyOption
-                      id="use-contact-email"
-                      label="Use this email for notifications"
-                      checked={true}
-                      onCheckedChange={() => {}}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
