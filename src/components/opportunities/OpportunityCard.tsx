@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,12 +40,6 @@ export function OpportunityCard({
   const navigate = useNavigate();
 
   const handleApply = () => {
-    if (!isAuthenticated) {
-      // Redirect to login page with the intended destination
-      navigate('/login', { state: { from: `/opportunities` } });
-      return;
-    }
-
     if (onApply) {
       onApply(id);
     }
