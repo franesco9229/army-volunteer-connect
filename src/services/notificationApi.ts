@@ -1,6 +1,13 @@
 
 // AWS SNS Notification Service
-import { ApiService } from './apiService';
+import { ApiService, AWS_CONFIG } from './apiService';
+
+const SNS_TOPICS = {
+  DEFAULT: `${AWS_CONFIG.SNS.TOPIC_PREFIX}default`,
+  OPPORTUNITIES: `${AWS_CONFIG.SNS.TOPIC_PREFIX}opportunities`,
+  APPLICATIONS: `${AWS_CONFIG.SNS.TOPIC_PREFIX}applications`,
+  ADMIN: `${AWS_CONFIG.SNS.TOPIC_PREFIX}admin`
+};
 
 export const NotificationApi = {
   // Subscribe a user to a topic
@@ -8,7 +15,8 @@ export const NotificationApi = {
     ApiService.post(`/notifications/subscribe`, {
       userId,
       topic,
-      endpoint
+      endpoint,
+      topicArn: `arn:aws:sns:${AWS_CONFIG.REGION}:*:${topic}`
     }),
     
   // Unsubscribe a user from a topic
@@ -25,5 +33,16 @@ export const NotificationApi = {
       userId,
       message,
       subject
-    })
+    }),
+    
+  // Send a notification to a topic
+  sendTopicNotification: (topic: string, message: string, subject: string) =>
+    ApiService.post(`/notifications/send-topic`, {
+      topicArn: `arn:aws:sns:${AWS_CONFIG.REGION}:*:${topic}`,
+      message,
+      subject
+    }),
+    
+  // Get available SNS topics
+  getAvailableTopics: () => SNS_TOPICS
 };

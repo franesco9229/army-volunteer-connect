@@ -2,9 +2,40 @@
 // Generic API service for AWS Gateway integration
 import { Auth } from './auth';
 
-// Base configuration for AWS services
-export const API_GATEWAY_URL = process.env.REACT_APP_API_GATEWAY_URL || 'https://api.example.com';
-export const REGION = process.env.REACT_APP_AWS_REGION || 'eu-west-2';
+// AWS Service Configuration
+export const AWS_CONFIG = {
+  API_GATEWAY_URL: process.env.REACT_APP_API_GATEWAY_URL || 'https://api.example.com',
+  REGION: process.env.REACT_APP_AWS_REGION || 'eu-west-2',
+  WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'wss://ws.example.com',
+  COGNITO: {
+    USER_POOL_ID: process.env.REACT_APP_COGNITO_USER_POOL_ID || 'eu-west-2_example',
+    CLIENT_ID: process.env.REACT_APP_COGNITO_CLIENT_ID || 'clientidexample',
+  },
+  LAMBDA: {
+    FUNCTION_PREFIX: process.env.REACT_APP_LAMBDA_PREFIX || 'sta-volunteer-',
+  },
+  DYNAMODB: {
+    TABLE_PREFIX: process.env.REACT_APP_DYNAMODB_PREFIX || 'sta-volunteer-',
+  },
+  SNS: {
+    TOPIC_PREFIX: process.env.REACT_APP_SNS_PREFIX || 'sta-volunteer-',
+  },
+  EVENTBRIDGE: {
+    BUS_NAME: process.env.REACT_APP_EVENTBRIDGE_BUS || 'sta-volunteer-events',
+  }
+};
+
+// External APIs Configuration
+export const EXTERNAL_APIS = {
+  JIRA: {
+    BASE_URL: process.env.REACT_APP_JIRA_API_URL || 'https://sta-volunteer.atlassian.net/rest/api/3',
+    PROJECT_KEY: process.env.REACT_APP_JIRA_PROJECT_KEY || 'STV',
+  },
+  HUBSPOT: {
+    BASE_URL: process.env.REACT_APP_HUBSPOT_API_URL || 'https://api.hubspot.com/crm/v3',
+    PORTAL_ID: process.env.REACT_APP_HUBSPOT_PORTAL_ID || '12345678',
+  }
+};
 
 export interface ApiOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -38,7 +69,7 @@ export const ApiService = {
     };
     
     try {
-      const response = await fetch(`${API_GATEWAY_URL}${endpoint}`, {
+      const response = await fetch(`${AWS_CONFIG.API_GATEWAY_URL}${endpoint}`, {
         method,
         headers: { ...defaultHeaders, ...authHeaders, ...headers },
         body: body ? JSON.stringify(body) : undefined
@@ -77,8 +108,8 @@ export const ApiService = {
   },
   
   // WebSockets for real-time updates
-  connectWebSocket: (url: string, onMessage: (data: any) => void) => {
-    const socket = new WebSocket(url);
+  connectWebSocket: (onMessage: (data: any) => void) => {
+    const socket = new WebSocket(AWS_CONFIG.WEBSOCKET_URL);
     
     socket.onopen = () => {
       console.log('WebSocket connection established');
@@ -111,5 +142,14 @@ export const ApiService = {
       },
       close: () => socket.close()
     };
+  },
+  
+  // EventBridge integration
+  triggerEvent: async (source: string, detailType: string, detail: any) => {
+    return ApiService.post('/events', {
+      Source: source,
+      DetailType: detailType,
+      Detail: JSON.stringify(detail)
+    });
   }
 };

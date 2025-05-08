@@ -3,13 +3,23 @@ import { useState, useEffect } from 'react';
 import { Opportunity, Application, Skill } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
+  VolunteeringApi, 
+  JiraApi,
+  HubSpotApi 
+} from '@/services/api';
+import { toast } from '@/components/ui/sonner';
+import { useNavigate } from 'react-router-dom';
+
+// For development, we'll still use mock data but set up for easy transition
+import { 
   fetchOpportunities,
   fetchUserApplications,
   applyForOpportunity,
   fetchUserSkills
 } from '@/data/mockData';
-import { toast } from '@/components/ui/sonner';
-import { useNavigate } from 'react-router-dom';
+
+// Flag to switch between mock and real API calls
+const USE_REAL_APIS = false;
 
 export function useOpportunities() {
   const { isAuthenticated, user } = useAuth();
@@ -26,16 +36,28 @@ export function useOpportunities() {
     setIsLoading(true);
     try {
       // Fetch opportunities for all users (whether logged in or not)
-      const oppsData = await fetchOpportunities();
+      let oppsData;
+      if (USE_REAL_APIS) {
+        oppsData = await VolunteeringApi.getOpportunities();
+      } else {
+        oppsData = await fetchOpportunities();
+      }
       setOpportunities(oppsData);
       
       // Only fetch applications if the user is logged in
       if (isAuthenticated && user) {
-        const appsData = await fetchUserApplications(user.id);
-        setApplications(appsData);
+        let appsData;
+        let skills;
         
-        // Fetch user skills
-        const skills = await fetchUserSkills(user.id);
+        if (USE_REAL_APIS) {
+          appsData = await VolunteeringApi.getUserApplications(user.id);
+          skills = await VolunteeringApi.getUserSkills(user.id);
+        } else {
+          appsData = await fetchUserApplications(user.id);
+          skills = await fetchUserSkills(user.id);
+        }
+        
+        setApplications(appsData);
         console.log("Fetched user skills:", skills);
         setUserSkills(skills);
       } else {
@@ -76,14 +98,34 @@ export function useOpportunities() {
       
       console.log("Sending application data to backend:", applicationData);
       
-      // This will be replaced with actual AWS API call
-      // Using DynamoDB and integrating with Jira and HubSpot
-      await applyForOpportunity(user.id, opportunityId);
+      if (USE_REAL_APIS) {
+        // Create application in DynamoDB through API Gateway
+        await VolunteeringApi.applyForOpportunity(opportunityId, user.id, {
+          userAgent: navigator.userAgent
+        });
+        
+        // Create Jira ticket for this application
+        await JiraApi.createJiraTicket(opportunityId, user.id);
+        
+        // Track this engagement in HubSpot
+        await HubSpotApi.trackEngagement(user.id, 'opportunity_application', {
+          opportunityId
+        });
+      } else {
+        // Using mock API for now
+        await applyForOpportunity(user.id, opportunityId);
+      }
       
       toast.success("Application submitted successfully!");
       
       // Refresh applications data
-      const newApplications = await fetchUserApplications(user.id);
+      let newApplications;
+      if (USE_REAL_APIS) {
+        newApplications = await VolunteeringApi.getUserApplications(user.id);
+      } else {
+        newApplications = await fetchUserApplications(user.id);
+      }
+      
       setApplications(newApplications);
     } catch (error) {
       toast.error("Failed to submit application");

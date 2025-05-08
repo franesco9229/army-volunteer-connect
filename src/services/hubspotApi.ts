@@ -1,13 +1,14 @@
 
 // Integration with HubSpot for CRM
-import { ApiService } from './apiService';
+import { ApiService, EXTERNAL_APIS } from './apiService';
 
 export const HubSpotApi = {
   // Get user profile from HubSpot
   getUserProfile: (userId: string) => 
     ApiService.get(`/hubspot/contacts`, {
       headers: {
-        'X-User-Id': userId
+        'X-User-Id': userId,
+        'X-HubSpot-Portal-Id': EXTERNAL_APIS.HUBSPOT.PORTAL_ID
       }
     }),
     
@@ -15,7 +16,9 @@ export const HubSpotApi = {
   updateUserProfile: (userId: string, profileData: any) =>
     ApiService.put(`/hubspot/contacts`, {
       userId,
-      ...profileData
+      ...profileData,
+      hubspotBaseUrl: EXTERNAL_APIS.HUBSPOT.BASE_URL,
+      portalId: EXTERNAL_APIS.HUBSPOT.PORTAL_ID
     }),
     
   // Track user engagement with the platform
@@ -24,10 +27,16 @@ export const HubSpotApi = {
       userId,
       activityType,
       details,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      hubspotBaseUrl: EXTERNAL_APIS.HUBSPOT.BASE_URL,
+      portalId: EXTERNAL_APIS.HUBSPOT.PORTAL_ID
     }),
     
   // Create a new contact in HubSpot
   createContact: (userData: any) =>
-    ApiService.post(`/hubspot/contacts`, userData)
+    ApiService.post(`/hubspot/contacts`, {
+      ...userData,
+      hubspotBaseUrl: EXTERNAL_APIS.HUBSPOT.BASE_URL,
+      portalId: EXTERNAL_APIS.HUBSPOT.PORTAL_ID
+    })
 };

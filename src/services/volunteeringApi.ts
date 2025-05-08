@@ -1,6 +1,14 @@
 
 // Integration with AWS API Gateway for volunteering opportunities
-import { ApiService } from './apiService';
+import { ApiService, AWS_CONFIG } from './apiService';
+
+// DynamoDB table names
+const TABLES = {
+  OPPORTUNITIES: `${AWS_CONFIG.DYNAMODB.TABLE_PREFIX}opportunities`,
+  APPLICATIONS: `${AWS_CONFIG.DYNAMODB.TABLE_PREFIX}applications`,
+  VOLUNTEER_RECORDS: `${AWS_CONFIG.DYNAMODB.TABLE_PREFIX}volunteer-records`,
+  USER_SKILLS: `${AWS_CONFIG.DYNAMODB.TABLE_PREFIX}user-skills`
+};
 
 export const VolunteeringApi = {
   // Get all available opportunities
@@ -18,7 +26,8 @@ export const VolunteeringApi = {
       ...additionalData,
       metadata: {
         source: 'web-platform',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        tableName: TABLES.APPLICATIONS
       }
     }),
   
@@ -39,7 +48,8 @@ export const VolunteeringApi = {
     ApiService.post(`/update-volunteering-record`, {
       recordId,
       ...hoursData,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      tableName: TABLES.VOLUNTEER_RECORDS
     }),
     
   // Update user skills
@@ -47,6 +57,7 @@ export const VolunteeringApi = {
     ApiService.post(`/update-skills`, {
       userId,
       skills,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      tableName: TABLES.USER_SKILLS
     })
 };
