@@ -31,6 +31,8 @@ export default function Opportunities() {
     setSecondarySkills,
     timeCommitment,
     setTimeCommitment,
+    useProfileSkills,
+    setUseProfileSkills,
     clearFilters,
     filterOpportunities
   } = useOpportunityFilters(user);
@@ -57,6 +59,8 @@ export default function Opportunities() {
           timeCommitment={timeCommitment}
           onTimeCommitmentChange={setTimeCommitment}
           onClearFilters={clearFilters}
+          useProfileSkills={useProfileSkills}
+          onUseProfileSkillsChange={setUseProfileSkills}
         />
         
         <OpportunityTabs

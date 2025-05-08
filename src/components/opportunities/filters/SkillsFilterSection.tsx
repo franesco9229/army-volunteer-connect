@@ -10,6 +10,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { techRoles } from '@/data/techRoles';
+import { additionalSkills } from '@/data/additionalSkills';
+
+// Combine tech roles and additional skills
+const allSkillOptions = [...techRoles, ...additionalSkills];
 
 interface SkillsFilterSectionProps {
   selectedSkills: string[];
@@ -34,8 +38,8 @@ export function SkillsFilterSection({
 
   // Find the role labels for display
   const getSkillLabel = (value: string) => {
-    const role = techRoles.find(role => role.value === value);
-    return role ? role.label : value;
+    const skill = allSkillOptions.find(skill => skill.value === value);
+    return skill ? skill.label : value;
   };
   
   return (
@@ -63,16 +67,16 @@ export function SkillsFilterSection({
             value=""
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select a role..." />
+              <SelectValue placeholder="Select a skill..." />
             </SelectTrigger>
-            <SelectContent>
-              {techRoles.map(role => (
+            <SelectContent className="max-h-[300px]">
+              {allSkillOptions.map(skill => (
                 <SelectItem 
-                  key={role.value} 
-                  value={role.value}
-                  disabled={selectedSkills.includes(role.value)}
+                  key={skill.value} 
+                  value={skill.value}
+                  disabled={selectedSkills.includes(skill.value)}
                 >
-                  {role.label}
+                  {skill.label}
                 </SelectItem>
               ))}
             </SelectContent>

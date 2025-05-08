@@ -2,6 +2,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Opportunity, OpportunityStatus, User } from '@/types';
 import { techRoles } from '@/data/techRoles';
+import { additionalSkills } from '@/data/additionalSkills';
+
+// Combine tech roles and additional skills
+const allSkillOptions = [...techRoles, ...additionalSkills];
 
 export function useOpportunityFilters(currentUser: User | null = null) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,36 +15,43 @@ export function useOpportunityFilters(currentUser: User | null = null) {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [secondarySkills, setSecondarySkills] = useState<string[]>([]);
   const [timeCommitment, setTimeCommitment] = useState<string>("any");
+  const [useProfileSkills, setUseProfileSkills] = useState<boolean>(false);
 
-  // Auto-apply user skills if available
+  // Auto-apply user skills if useProfileSkills is true
   useEffect(() => {
-    if (currentUser?.skills?.length) {
+    if (useProfileSkills && currentUser?.skills?.length) {
       // Map user skills to tech roles
       const matchedSkills = currentUser.skills
         .map(skill => {
-          // Find matching tech role by name (case insensitive)
-          const matchedRole = techRoles.find(role => 
-            role.label.toLowerCase() === skill.name.toLowerCase()
+          // Find matching tech role or additional skill by name (case insensitive)
+          const matchedSkill = allSkillOptions.find(option => 
+            option.label.toLowerCase() === skill.name.toLowerCase()
           );
-          return matchedRole?.value;
+          return matchedSkill?.value;
         })
         .filter(Boolean) as string[];
       
-      // Take up to 2 skills
+      // Take up to 2 skills for primary
       setSelectedSkills(matchedSkills.slice(0, 2));
+      
+      // Take any remaining skills for secondary (up to 2)
+      if (matchedSkills.length > 2) {
+        setSecondarySkills(matchedSkills.slice(2, 4));
+      }
     }
-  }, [currentUser]);
+  }, [currentUser, useProfileSkills]);
 
   const clearFilters = useCallback(() => {
     setSelectedSkills([]);
     setSecondarySkills([]);
     setTimeCommitment("any");
+    setUseProfileSkills(false);
   }, []);
 
   // Find role label for displaying in filter badges
-  const getRoleLabel = useCallback((value: string) => {
-    const role = techRoles.find(role => role.value === value);
-    return role ? role.label : value;
+  const getSkillLabel = useCallback((value: string) => {
+    const skill = allSkillOptions.find(skill => skill.value === value);
+    return skill ? skill.label : value;
   }, []);
 
   // Filter opportunities based on search term, filters, and status
@@ -58,18 +69,18 @@ export function useOpportunityFilters(currentUser: User | null = null) {
       // Primary Skills filter
       const matchesPrimarySkills = selectedSkills.length === 0 || 
         selectedSkills.some(skill => {
-          const roleLabel = getRoleLabel(skill);
+          const skillLabel = getSkillLabel(skill);
           return opp.requiredSkills.some(oppSkill => 
-            oppSkill.toLowerCase().includes(roleLabel.toLowerCase())
+            oppSkill.toLowerCase().includes(skillLabel.toLowerCase())
           );
         });
       
       // Secondary Skills filter
       const matchesSecondarySkills = secondarySkills.length === 0 || 
         secondarySkills.some(skill => {
-          const roleLabel = getRoleLabel(skill);
+          const skillLabel = getSkillLabel(skill);
           return opp.requiredSkills.some(oppSkill => 
-            oppSkill.toLowerCase().includes(roleLabel.toLowerCase())
+            oppSkill.toLowerCase().includes(skillLabel.toLowerCase())
           );
         });
         
@@ -97,7 +108,7 @@ export function useOpportunityFilters(currentUser: User | null = null) {
       }
       return false;
     });
-  }, [searchTerm, selectedSkills, secondarySkills, timeCommitment, activeTab, getRoleLabel]);
+  }, [searchTerm, selectedSkills, secondarySkills, timeCommitment, activeTab, getSkillLabel]);
 
   return {
     searchTerm,
@@ -110,8 +121,10 @@ export function useOpportunityFilters(currentUser: User | null = null) {
     setSecondarySkills,
     timeCommitment,
     setTimeCommitment,
+    useProfileSkills,
+    setUseProfileSkills,
     clearFilters,
     filterOpportunities,
-    getRoleLabel
+    getSkillLabel
   };
 }

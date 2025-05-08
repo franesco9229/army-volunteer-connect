@@ -20,9 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { SkillsFilterSection } from './filters/SkillsFilterSection';
 import { ActiveFilterBadges } from './filters/ActiveFilterBadges';
-import { TIME_COMMITMENT_OPTIONS } from './filters/FilterOptionsList';
+import { TIME_COMMITMENT_OPTIONS, useProfileSkillsLabel } from './filters/FilterOptionsList';
 
 interface OpportunitiesFilterProps {
   searchTerm: string;
@@ -34,6 +35,8 @@ interface OpportunitiesFilterProps {
   timeCommitment: string;
   onTimeCommitmentChange: (value: string) => void;
   onClearFilters: () => void;
+  useProfileSkills: boolean;
+  onUseProfileSkillsChange: (value: boolean) => void;
 }
 
 export function OpportunitiesFilter({
@@ -45,7 +48,9 @@ export function OpportunitiesFilter({
   onSecondarySkillsChange,
   timeCommitment,
   onTimeCommitmentChange,
-  onClearFilters
+  onClearFilters,
+  useProfileSkills,
+  onUseProfileSkillsChange
 }: OpportunitiesFilterProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
@@ -53,7 +58,8 @@ export function OpportunitiesFilter({
   const activeFilterCount = 
     (selectedSkills.length > 0 ? 1 : 0) + 
     (secondarySkills.length > 0 ? 1 : 0) + 
-    (timeCommitment !== 'any' ? 1 : 0);
+    (timeCommitment !== 'any' ? 1 : 0) +
+    (useProfileSkills ? 1 : 0);
 
   return (
     <div className="flex flex-col md:flex-row gap-4">
@@ -88,6 +94,20 @@ export function OpportunitiesFilter({
           </SheetHeader>
           
           <div className="py-6 space-y-6">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="useProfileSkills" 
+                checked={useProfileSkills} 
+                onCheckedChange={(checked) => onUseProfileSkillsChange(checked as boolean)}
+              />
+              <label 
+                htmlFor="useProfileSkills" 
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {useProfileSkillsLabel}
+              </label>
+            </div>
+            
             <SkillsFilterSection 
               title="Primary Skills"
               selectedSkills={selectedSkills}
@@ -140,6 +160,8 @@ export function OpportunitiesFilter({
         onSecondarySkillsChange={onSecondarySkillsChange}
         timeCommitment={timeCommitment}
         onTimeCommitmentChange={onTimeCommitmentChange}
+        useProfileSkills={useProfileSkills}
+        onUseProfileSkillsChange={onUseProfileSkillsChange}
       />
     </div>
   );
