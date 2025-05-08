@@ -109,13 +109,13 @@ export function OpportunitiesFilter({
             </div>
             
             <SkillsFilterSection 
-              title="Primary Skills"
+              title="Primary Skills (max 2)"
               selectedSkills={selectedSkills}
               onSkillsChange={onSkillsChange}
             />
             
             <SkillsFilterSection 
-              title="Secondary Skills"
+              title="Additional Skills (max 2)"
               selectedSkills={secondarySkills}
               onSkillsChange={onSecondarySkillsChange}
             />

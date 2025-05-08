@@ -78,7 +78,7 @@ export function ActiveFilterBadges({
           variant="outline" 
           className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
         >
-          Secondary: {skill}
+          Additional: {skill}
           <X 
             className="h-3 w-3 cursor-pointer" 
             onClick={() => handleRemoveSkill(skill, false)} 

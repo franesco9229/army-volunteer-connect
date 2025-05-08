@@ -44,7 +44,7 @@ export function SkillsFilterSection({
   
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium">{title} (max 2)</h3>
+      <h3 className="text-sm font-medium">{title}</h3>
       <div className="flex flex-wrap gap-2 mb-2">
         {selectedSkills.map(skill => (
           <Badge 
@@ -60,32 +60,30 @@ export function SkillsFilterSection({
           </Badge>
         ))}
       </div>
-      <div className="space-y-2">
-        {selectedSkills.length < 2 && (
-          <Select
-            onValueChange={handleAddSkill}
-            value=""
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a skill..." />
-            </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
-              {allSkillOptions.map(skill => (
-                <SelectItem 
-                  key={skill.value} 
-                  value={skill.value}
-                  disabled={selectedSkills.includes(skill.value)}
-                >
-                  {skill.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-        {selectedSkills.length >= 2 && (
-          <p className="text-xs text-muted-foreground">Maximum of 2 skills reached</p>
-        )}
-      </div>
+      {selectedSkills.length < 2 && (
+        <Select
+          onValueChange={handleAddSkill}
+          value=""
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select a skill..." />
+          </SelectTrigger>
+          <SelectContent className="max-h-[300px]">
+            {allSkillOptions.map(skill => (
+              <SelectItem 
+                key={skill.value} 
+                value={skill.value}
+                disabled={selectedSkills.includes(skill.value)}
+              >
+                {skill.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      {selectedSkills.length >= 2 && (
+        <p className="text-xs text-muted-foreground">Maximum of 2 skills reached</p>
+      )}
     </div>
   );
 }
