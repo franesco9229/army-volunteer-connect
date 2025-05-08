@@ -8,12 +8,14 @@ import {
   applyForOpportunity
 } from '@/data/mockData';
 import { toast } from '@/components/ui/sonner';
+import { useNavigate } from 'react-router-dom';
 
 export function useOpportunities() {
   const { isAuthenticated, user } = useAuth();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   // Get IDs of opportunities the user has already applied to
   const appliedOpportunityIds = applications.map(app => app.opportunityId);
@@ -46,6 +48,8 @@ export function useOpportunities() {
   const handleApply = async (opportunityId: string) => {
     if (!isAuthenticated || !user) {
       toast.error("Please login to apply for opportunities");
+      // Redirect to login page
+      navigate('/login', { state: { from: '/opportunities' } });
       return;
     }
     
