@@ -14,7 +14,8 @@ export default function Opportunities() {
     opportunities,
     isLoading,
     appliedOpportunityIds,
-    handleApply
+    handleApply,
+    userSkills
   } = useOpportunities();
   
   // Convert AuthUser to User type before passing to useOpportunityFilters
@@ -35,7 +36,7 @@ export default function Opportunities() {
     setUseProfileSkills,
     clearFilters,
     filterOpportunities
-  } = useOpportunityFilters(user);
+  } = useOpportunityFilters(user, userSkills);
 
   const filteredOpportunities = filterOpportunities(opportunities, appliedOpportunityIds);
 

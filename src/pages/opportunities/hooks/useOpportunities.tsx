@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { 
   fetchOpportunities,
   fetchUserApplications,
-  applyForOpportunity
+  applyForOpportunity,
+  fetchUserSkills
 } from '@/data/mockData';
 import { toast } from '@/components/ui/sonner';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +16,7 @@ export function useOpportunities() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userSkills, setUserSkills] = useState([]);
   const navigate = useNavigate();
 
   // Get IDs of opportunities the user has already applied to
@@ -31,8 +33,13 @@ export function useOpportunities() {
       if (isAuthenticated && user) {
         const appsData = await fetchUserApplications(user.id);
         setApplications(appsData);
+        
+        // Fetch user skills
+        const skills = await fetchUserSkills(user.id);
+        setUserSkills(skills);
       } else {
         setApplications([]);
+        setUserSkills([]);
       }
     } catch (error) {
       console.error("Error fetching opportunities data:", error);
@@ -88,6 +95,7 @@ export function useOpportunities() {
     applications,
     isLoading,
     appliedOpportunityIds,
-    handleApply
+    handleApply,
+    userSkills
   };
 }

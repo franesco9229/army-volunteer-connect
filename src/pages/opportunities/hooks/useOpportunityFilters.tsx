@@ -1,13 +1,13 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { Opportunity, OpportunityStatus, User } from '@/types';
+import { Opportunity, OpportunityStatus, User, Skill } from '@/types';
 import { techRoles } from '@/data/techRoles';
 import { additionalSkills } from '@/data/additionalSkills';
 
 // Combine tech roles and additional skills
 const allSkillOptions = [...techRoles, ...additionalSkills];
 
-export function useOpportunityFilters(currentUser: User | null = null) {
+export function useOpportunityFilters(currentUser: User | null = null, userSkills: Skill[] = []) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   
@@ -19,9 +19,9 @@ export function useOpportunityFilters(currentUser: User | null = null) {
 
   // Auto-apply user skills if useProfileSkills is true
   useEffect(() => {
-    if (useProfileSkills && currentUser?.skills?.length) {
+    if (useProfileSkills && userSkills?.length) {
       // Map user skills to tech roles
-      const matchedSkills = currentUser.skills
+      const matchedSkills = userSkills
         .map(skill => {
           // Find matching tech role or additional skill by name (case insensitive)
           const matchedSkill = allSkillOptions.find(option => 
@@ -39,7 +39,7 @@ export function useOpportunityFilters(currentUser: User | null = null) {
         setSecondarySkills(matchedSkills.slice(2, 4));
       }
     }
-  }, [currentUser, useProfileSkills]);
+  }, [useProfileSkills, userSkills]);
 
   const clearFilters = useCallback(() => {
     setSelectedSkills([]);
