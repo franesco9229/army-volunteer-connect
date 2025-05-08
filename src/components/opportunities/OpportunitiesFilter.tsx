@@ -147,14 +147,14 @@ export function OpportunitiesFilter({
               <div className="grid grid-cols-1 gap-2">
                 {/* First Dropdown */}
                 <Select
-                  value={secondarySkills[0] || ""}
-                  onValueChange={(value) => handleAddSecondarySkill(0, value)}
+                  value={secondarySkills[0] || "none"}
+                  onValueChange={(value) => handleAddSecondarySkill(0, value === "none" ? "" : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a skill..." />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {allSkillOptions.map(skill => (
                       <SelectItem 
                         key={skill.value} 
@@ -169,14 +169,14 @@ export function OpportunitiesFilter({
                 
                 {/* Second Dropdown */}
                 <Select
-                  value={secondarySkills[1] || ""}
-                  onValueChange={(value) => handleAddSecondarySkill(1, value)}
+                  value={secondarySkills[1] || "none"}
+                  onValueChange={(value) => handleAddSecondarySkill(1, value === "none" ? "" : value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a skill..." />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {allSkillOptions.map(skill => (
                       <SelectItem 
                         key={skill.value} 
