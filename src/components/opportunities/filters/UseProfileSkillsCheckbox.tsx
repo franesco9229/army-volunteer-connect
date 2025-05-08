@@ -17,7 +17,10 @@ export function UseProfileSkillsCheckbox({
       <Checkbox 
         id="useProfileSkills" 
         checked={useProfileSkills} 
-        onCheckedChange={(checked) => onUseProfileSkillsChange(checked as boolean)}
+        onCheckedChange={(checked) => {
+          console.log("Checkbox changed to:", checked);
+          onUseProfileSkillsChange(checked === true);
+        }}
       />
       <label 
         htmlFor="useProfileSkills" 

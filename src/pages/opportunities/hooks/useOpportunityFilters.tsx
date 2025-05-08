@@ -19,7 +19,12 @@ export function useOpportunityFilters(currentUser: User | null = null, userSkill
 
   // Auto-apply user skills if useProfileSkills is true
   useEffect(() => {
+    console.log("useProfileSkills changed:", useProfileSkills);
+    console.log("userSkills:", userSkills);
+    
     if (useProfileSkills && userSkills?.length) {
+      console.log("Applying profile skills to filters");
+      
       // Map user skills to tech roles
       const matchedSkills = userSkills
         .map(skill => {
@@ -31,6 +36,8 @@ export function useOpportunityFilters(currentUser: User | null = null, userSkill
         })
         .filter(Boolean) as string[];
       
+      console.log("Matched skills:", matchedSkills);
+      
       // Take up to 2 skills for primary
       setSelectedSkills(matchedSkills.slice(0, 2));
       
@@ -38,8 +45,18 @@ export function useOpportunityFilters(currentUser: User | null = null, userSkill
       if (matchedSkills.length > 2) {
         setSecondarySkills(matchedSkills.slice(2, 4));
       }
+    } else if (!useProfileSkills) {
+      // When turning off profile skills, clear the filter selections
+      setSelectedSkills([]);
+      setSecondarySkills([]);
     }
   }, [useProfileSkills, userSkills]);
+
+  // Function to toggle useProfileSkills state
+  const toggleUseProfileSkills = (checked: boolean) => {
+    console.log("Toggling useProfileSkills to:", checked);
+    setUseProfileSkills(checked);
+  };
 
   const clearFilters = useCallback(() => {
     setSelectedSkills([]);
@@ -122,7 +139,7 @@ export function useOpportunityFilters(currentUser: User | null = null, userSkill
     timeCommitment,
     setTimeCommitment,
     useProfileSkills,
-    setUseProfileSkills,
+    setUseProfileSkills: toggleUseProfileSkills,
     clearFilters,
     filterOpportunities,
     getSkillLabel

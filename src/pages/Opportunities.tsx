@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import AppLayout from '@/components/layout/AppLayout';
 import { OpportunitiesFilter } from '@/components/opportunities/OpportunitiesFilter';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,6 +37,14 @@ export default function Opportunities() {
     clearFilters,
     filterOpportunities
   } = useOpportunityFilters(user, userSkills);
+
+  // Debug logs to check values
+  useEffect(() => {
+    console.log("Profile skills state:", useProfileSkills);
+    console.log("User skills:", userSkills);
+    console.log("Selected skills:", selectedSkills);
+    console.log("Secondary skills:", secondarySkills);
+  }, [useProfileSkills, userSkills, selectedSkills, secondarySkills]);
 
   const filteredOpportunities = filterOpportunities(opportunities, appliedOpportunityIds);
 
