@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,15 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { Star, Clock, Calendar } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-
-interface Preferences {
-  wantToMentor: boolean;
-  wantToBeMentored: boolean;
-  hoursPerWeek: number;
-  availability: {
-    [key: string]: boolean;
-  };
-}
+import { Preferences } from '@/hooks/profile/useProfileData';
 
 interface PreferencesTabProps {
   initialPreferences: Preferences;
