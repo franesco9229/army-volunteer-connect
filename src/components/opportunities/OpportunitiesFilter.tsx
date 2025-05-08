@@ -13,7 +13,7 @@ import {
   SheetFooter,
   SheetClose
 } from '@/components/ui/sheet';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -22,17 +22,17 @@ import {
 } from '@/components/ui/select';
 import { SkillsFilterSection } from './filters/SkillsFilterSection';
 import { ActiveFilterBadges } from './filters/ActiveFilterBadges';
-import { ROLE_TYPE_OPTIONS, TIME_COMMITMENT_OPTIONS } from './filters/FilterOptionsList';
+import { TIME_COMMITMENT_OPTIONS } from './filters/FilterOptionsList';
 
 interface OpportunitiesFilterProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   selectedSkills: string[];
   onSkillsChange: (skills: string[]) => void;
+  secondarySkills: string[];
+  onSecondarySkillsChange: (skills: string[]) => void;
   timeCommitment: string;
   onTimeCommitmentChange: (value: string) => void;
-  roleType: string;
-  onRoleTypeChange: (value: string) => void;
   onClearFilters: () => void;
 }
 
@@ -41,10 +41,10 @@ export function OpportunitiesFilter({
   onSearchChange,
   selectedSkills,
   onSkillsChange,
+  secondarySkills,
+  onSecondarySkillsChange,
   timeCommitment,
   onTimeCommitmentChange,
-  roleType,
-  onRoleTypeChange,
   onClearFilters
 }: OpportunitiesFilterProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -52,8 +52,8 @@ export function OpportunitiesFilter({
   // Count active filters
   const activeFilterCount = 
     (selectedSkills.length > 0 ? 1 : 0) + 
-    (timeCommitment !== 'any' ? 1 : 0) + 
-    (roleType !== 'any' ? 1 : 0);
+    (secondarySkills.length > 0 ? 1 : 0) + 
+    (timeCommitment !== 'any' ? 1 : 0);
 
   return (
     <div className="flex flex-col md:flex-row gap-4">
@@ -89,28 +89,16 @@ export function OpportunitiesFilter({
           
           <div className="py-6 space-y-6">
             <SkillsFilterSection 
+              title="Primary Skills"
               selectedSkills={selectedSkills}
               onSkillsChange={onSkillsChange}
             />
             
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Role Type</h3>
-              <Select 
-                value={roleType} 
-                onValueChange={onRoleTypeChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select role type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLE_TYPE_OPTIONS.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <SkillsFilterSection 
+              title="Secondary Skills"
+              selectedSkills={secondarySkills}
+              onSkillsChange={onSecondarySkillsChange}
+            />
             
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Time Commitment</h3>
@@ -148,10 +136,10 @@ export function OpportunitiesFilter({
       <ActiveFilterBadges
         selectedSkills={selectedSkills}
         onSkillsChange={onSkillsChange}
+        secondarySkills={secondarySkills}
+        onSecondarySkillsChange={onSecondarySkillsChange}
         timeCommitment={timeCommitment}
         onTimeCommitmentChange={onTimeCommitmentChange}
-        roleType={roleType}
-        onRoleTypeChange={onRoleTypeChange}
       />
     </div>
   );

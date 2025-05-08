@@ -9,8 +9,8 @@ export function useOpportunityFilters(currentUser: User | null = null) {
   
   // Filter states
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [secondarySkills, setSecondarySkills] = useState<string[]>([]);
   const [timeCommitment, setTimeCommitment] = useState<string>("any");
-  const [roleType, setRoleType] = useState<string>("any");
 
   // Auto-apply user skills if available
   useEffect(() => {
@@ -33,8 +33,8 @@ export function useOpportunityFilters(currentUser: User | null = null) {
 
   const clearFilters = useCallback(() => {
     setSelectedSkills([]);
+    setSecondarySkills([]);
     setTimeCommitment("any");
-    setRoleType("any");
   }, []);
 
   // Find role label for displaying in filter badges
@@ -55,17 +55,23 @@ export function useOpportunityFilters(currentUser: User | null = null) {
           skill.toLowerCase().includes(searchTerm.toLowerCase())
         );
       
-      // Skills filter
-      const matchesSkills = selectedSkills.length === 0 || 
+      // Primary Skills filter
+      const matchesPrimarySkills = selectedSkills.length === 0 || 
         selectedSkills.some(skill => {
           const roleLabel = getRoleLabel(skill);
           return opp.requiredSkills.some(oppSkill => 
             oppSkill.toLowerCase().includes(roleLabel.toLowerCase())
           );
         });
-        
-      // Role type filter
-      const matchesRole = roleType === "any" || (opp.role && opp.role.toLowerCase() === roleType.toLowerCase());
+      
+      // Secondary Skills filter
+      const matchesSecondarySkills = secondarySkills.length === 0 || 
+        secondarySkills.some(skill => {
+          const roleLabel = getRoleLabel(skill);
+          return opp.requiredSkills.some(oppSkill => 
+            oppSkill.toLowerCase().includes(roleLabel.toLowerCase())
+          );
+        });
         
       // Time commitment filter
       let matchesTimeCommitment = true;
@@ -84,14 +90,14 @@ export function useOpportunityFilters(currentUser: User | null = null) {
       }
       
       // Tab filters
-      if (activeTab === 'all') return matchesSearch && matchesSkills && matchesRole && matchesTimeCommitment;
-      if (activeTab === 'open') return matchesSearch && matchesSkills && matchesRole && matchesTimeCommitment && opp.status === OpportunityStatus.Open;
+      if (activeTab === 'all') return matchesSearch && matchesPrimarySkills && matchesSecondarySkills && matchesTimeCommitment;
+      if (activeTab === 'open') return matchesSearch && matchesPrimarySkills && matchesSecondarySkills && matchesTimeCommitment && opp.status === OpportunityStatus.Open;
       if (activeTab === 'applied') {
-        return matchesSearch && matchesSkills && matchesRole && matchesTimeCommitment && appliedOpportunityIds.includes(opp.id);
+        return matchesSearch && matchesPrimarySkills && matchesSecondarySkills && matchesTimeCommitment && appliedOpportunityIds.includes(opp.id);
       }
       return false;
     });
-  }, [searchTerm, selectedSkills, roleType, timeCommitment, activeTab, getRoleLabel]);
+  }, [searchTerm, selectedSkills, secondarySkills, timeCommitment, activeTab, getRoleLabel]);
 
   return {
     searchTerm,
@@ -100,10 +106,10 @@ export function useOpportunityFilters(currentUser: User | null = null) {
     setActiveTab,
     selectedSkills,
     setSelectedSkills,
+    secondarySkills,
+    setSecondarySkills,
     timeCommitment,
     setTimeCommitment,
-    roleType,
-    setRoleType,
     clearFilters,
     filterOpportunities,
     getRoleLabel

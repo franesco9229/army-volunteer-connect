@@ -27,10 +27,10 @@ export default function Opportunities() {
     setActiveTab,
     selectedSkills,
     setSelectedSkills,
+    secondarySkills,
+    setSecondarySkills,
     timeCommitment,
     setTimeCommitment,
-    roleType,
-    setRoleType,
     clearFilters,
     filterOpportunities
   } = useOpportunityFilters(user);
@@ -52,10 +52,10 @@ export default function Opportunities() {
           onSearchChange={setSearchTerm}
           selectedSkills={selectedSkills}
           onSkillsChange={setSelectedSkills}
+          secondarySkills={secondarySkills}
+          onSecondarySkillsChange={setSecondarySkills}
           timeCommitment={timeCommitment}
           onTimeCommitmentChange={setTimeCommitment}
-          roleType={roleType}
-          onRoleTypeChange={setRoleType}
           onClearFilters={clearFilters}
         />
         

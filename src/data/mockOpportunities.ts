@@ -42,9 +42,9 @@ export const mockOpportunities: Opportunity[] = [
     roleType: "designer",
     projectStatus: "active",
     video: {
-      url: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4",
-      thumbnail: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81",
-      title: "Community Platform Design Preview"
+      url: "https://cdn.lovable.ai/keyboard_typing_video.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+      title: "Developer at Work"
     }
   },
   {
@@ -62,7 +62,12 @@ export const mockOpportunities: Opportunity[] = [
     applicationDeadline: new Date(2025, 4, 20).toISOString(),
     status: OpportunityStatus.Active,
     roleType: "developer",
-    projectStatus: "active"
+    projectStatus: "active",
+    video: {
+      url: "https://cdn.lovable.ai/laptop_coding_video.mp4",
+      thumbnail: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
+      title: "Coding in Action"
+    }
   },
   {
     id: "opp-4",

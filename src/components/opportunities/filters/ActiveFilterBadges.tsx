@@ -2,33 +2,37 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { TIME_COMMITMENT_OPTIONS, ROLE_TYPE_OPTIONS } from './FilterOptionsList';
+import { TIME_COMMITMENT_OPTIONS } from './FilterOptionsList';
 
 interface ActiveFilterBadgesProps {
   selectedSkills: string[];
   onSkillsChange: (skills: string[]) => void;
+  secondarySkills: string[];
+  onSecondarySkillsChange: (skills: string[]) => void;
   timeCommitment: string;
   onTimeCommitmentChange: (value: string) => void;
-  roleType: string;
-  onRoleTypeChange: (value: string) => void;
 }
 
 export function ActiveFilterBadges({
   selectedSkills,
   onSkillsChange,
+  secondarySkills,
+  onSecondarySkillsChange,
   timeCommitment,
-  onTimeCommitmentChange,
-  roleType,
-  onRoleTypeChange
+  onTimeCommitmentChange
 }: ActiveFilterBadgesProps) {
-  const handleRemoveSkill = (skillToRemove: string) => {
-    onSkillsChange(selectedSkills.filter(skill => skill !== skillToRemove));
+  const handleRemoveSkill = (skillToRemove: string, isPrimary: boolean) => {
+    if (isPrimary) {
+      onSkillsChange(selectedSkills.filter(skill => skill !== skillToRemove));
+    } else {
+      onSecondarySkillsChange(secondarySkills.filter(skill => skill !== skillToRemove));
+    }
   };
 
   const activeFilterCount = 
     (selectedSkills.length > 0 ? 1 : 0) + 
-    (timeCommitment !== 'any' ? 1 : 0) + 
-    (roleType !== 'any' ? 1 : 0);
+    (secondarySkills.length > 0 ? 1 : 0) + 
+    (timeCommitment !== 'any' ? 1 : 0);
 
   if (activeFilterCount === 0) {
     return null;
@@ -38,30 +42,31 @@ export function ActiveFilterBadges({
     <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
       {selectedSkills.map(skill => (
         <Badge 
-          key={skill}
+          key={`primary-${skill}`}
           variant="outline" 
           className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
         >
-          {skill}
+          Primary: {skill}
           <X 
             className="h-3 w-3 cursor-pointer" 
-            onClick={() => handleRemoveSkill(skill)} 
+            onClick={() => handleRemoveSkill(skill, true)} 
           />
         </Badge>
       ))}
 
-      {roleType !== 'any' && (
+      {secondarySkills.map(skill => (
         <Badge 
+          key={`secondary-${skill}`}
           variant="outline" 
           className="bg-sta-purple/10 text-sta-purple border-sta-purple/30 flex items-center gap-1"
         >
-          {ROLE_TYPE_OPTIONS.find(o => o.value === roleType)?.label}
+          Secondary: {skill}
           <X 
             className="h-3 w-3 cursor-pointer" 
-            onClick={() => onRoleTypeChange('any')} 
+            onClick={() => handleRemoveSkill(skill, false)} 
           />
         </Badge>
-      )}
+      ))}
 
       {timeCommitment !== 'any' && (
         <Badge 

@@ -14,11 +14,13 @@ import { techRoles } from '@/data/techRoles';
 interface SkillsFilterSectionProps {
   selectedSkills: string[];
   onSkillsChange: (skills: string[]) => void;
+  title?: string;
 }
 
 export function SkillsFilterSection({
   selectedSkills,
-  onSkillsChange
+  onSkillsChange,
+  title = "Skills"
 }: SkillsFilterSectionProps) {
   const handleAddSkill = (value: string) => {
     if (value && !selectedSkills.includes(value) && selectedSkills.length < 2) {
@@ -38,7 +40,7 @@ export function SkillsFilterSection({
   
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-medium">Skills (max 2)</h3>
+      <h3 className="text-sm font-medium">{title} (max 2)</h3>
       <div className="flex flex-wrap gap-2 mb-2">
         {selectedSkills.map(skill => (
           <Badge 
