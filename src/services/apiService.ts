@@ -1,39 +1,38 @@
-
 // Generic API service for AWS Gateway integration
 import { Auth } from './auth';
 
 // AWS Service Configuration
 export const AWS_CONFIG = {
-  API_GATEWAY_URL: process.env.REACT_APP_API_GATEWAY_URL || 'https://api.example.com',
-  REGION: process.env.REACT_APP_AWS_REGION || 'eu-west-2',
-  WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'wss://ws.example.com',
+  API_GATEWAY_URL: import.meta.env.VITE_API_GATEWAY_URL || 'https://api.example.com',
+  REGION: import.meta.env.VITE_AWS_REGION || 'eu-west-2',
+  WEBSOCKET_URL: import.meta.env.VITE_WEBSOCKET_URL || 'wss://ws.example.com',
   COGNITO: {
-    USER_POOL_ID: process.env.REACT_APP_COGNITO_USER_POOL_ID || 'eu-west-2_example',
-    CLIENT_ID: process.env.REACT_APP_COGNITO_CLIENT_ID || 'clientidexample',
+    USER_POOL_ID: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'eu-west-2_example',
+    CLIENT_ID: import.meta.env.VITE_COGNITO_CLIENT_ID || 'clientidexample',
   },
   LAMBDA: {
-    FUNCTION_PREFIX: process.env.REACT_APP_LAMBDA_PREFIX || 'sta-volunteer-',
+    FUNCTION_PREFIX: import.meta.env.VITE_LAMBDA_PREFIX || 'sta-volunteer-',
   },
   DYNAMODB: {
-    TABLE_PREFIX: process.env.REACT_APP_DYNAMODB_PREFIX || 'sta-volunteer-',
+    TABLE_PREFIX: import.meta.env.VITE_DYNAMODB_PREFIX || 'sta-volunteer-',
   },
   SNS: {
-    TOPIC_PREFIX: process.env.REACT_APP_SNS_PREFIX || 'sta-volunteer-',
+    TOPIC_PREFIX: import.meta.env.VITE_SNS_PREFIX || 'sta-volunteer-',
   },
   EVENTBRIDGE: {
-    BUS_NAME: process.env.REACT_APP_EVENTBRIDGE_BUS || 'sta-volunteer-events',
+    BUS_NAME: import.meta.env.VITE_EVENTBRIDGE_BUS || 'sta-volunteer-events',
   }
 };
 
 // External APIs Configuration
 export const EXTERNAL_APIS = {
   JIRA: {
-    BASE_URL: process.env.REACT_APP_JIRA_API_URL || 'https://sta-volunteer.atlassian.net/rest/api/3',
-    PROJECT_KEY: process.env.REACT_APP_JIRA_PROJECT_KEY || 'STV',
+    BASE_URL: import.meta.env.VITE_JIRA_API_URL || 'https://sta-volunteer.atlassian.net/rest/api/3',
+    PROJECT_KEY: import.meta.env.VITE_JIRA_PROJECT_KEY || 'STV',
   },
   HUBSPOT: {
-    BASE_URL: process.env.REACT_APP_HUBSPOT_API_URL || 'https://api.hubspot.com/crm/v3',
-    PORTAL_ID: process.env.REACT_APP_HUBSPOT_PORTAL_ID || '12345678',
+    BASE_URL: import.meta.env.VITE_HUBSPOT_API_URL || 'https://api.hubspot.com/crm/v3',
+    PORTAL_ID: import.meta.env.VITE_HUBSPOT_PORTAL_ID || '12345678',
   }
 };
 
