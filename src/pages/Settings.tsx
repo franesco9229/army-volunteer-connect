@@ -5,8 +5,7 @@ import {
   User, 
   Lock, 
   Eye, 
-  Shield, 
-  Sliders
+  Shield
 } from 'lucide-react';
 import { 
   Tabs, 
@@ -19,7 +18,6 @@ import { AccountTab } from '@/components/settings/AccountTab';
 import { NotificationsTab } from '@/components/settings/NotificationsTab';
 import { DisplayTab } from '@/components/settings/DisplayTab';
 import { PrivacyTab } from '@/components/settings/PrivacyTab';
-import { SecurityTab } from '@/components/settings/SecurityTab';
 
 const Settings = () => {
   return (
@@ -45,10 +43,6 @@ const Settings = () => {
               <Shield className="h-4 w-4" />
               <span>Privacy</span>
             </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-              <Sliders className="h-4 w-4" />
-              <span>Security</span>
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="account">
@@ -65,10 +59,6 @@ const Settings = () => {
           
           <TabsContent value="privacy">
             <PrivacyTab />
-          </TabsContent>
-          
-          <TabsContent value="security">
-            <SecurityTab />
           </TabsContent>
         </Tabs>
       </div>

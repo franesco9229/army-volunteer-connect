@@ -52,14 +52,23 @@ export function OpportunityCard({
     }
   };
 
-  const handleVideoToggle = () => {
+  const handleVideoToggle = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play().catch(err => {
-          console.error("Error playing video:", err);
-        });
+        // Add a small timeout to ensure DOM is ready
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.play()
+              .then(() => console.log("Video playing successfully"))
+              .catch(err => {
+                console.error("Error playing video:", err);
+              });
+          }
+        }, 100);
       }
       setIsPlaying(!isPlaying);
     }
@@ -90,9 +99,12 @@ export function OpportunityCard({
                   <video 
                     ref={videoRef}
                     src={video.url} 
-                    controls 
+                    controls
+                    autoPlay
+                    playsInline
                     className="w-full h-full object-cover"
                     onEnded={() => setIsPlaying(false)}
+                    onError={(e) => console.error("Video error:", e)}
                   />
                 ) : (
                   <div className="relative w-full h-full">
@@ -109,6 +121,7 @@ export function OpportunityCard({
                         size="icon" 
                         className="bg-sta-purple hover:bg-sta-purple/90 text-white rounded-full w-12 h-12"
                         onClick={handleVideoToggle}
+                        type="button"
                       >
                         <Play className="w-6 h-6" />
                       </Button>
