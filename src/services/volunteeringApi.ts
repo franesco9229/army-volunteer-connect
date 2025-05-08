@@ -59,5 +59,13 @@ export const VolunteeringApi = {
       skills,
       timestamp: new Date().toISOString(),
       tableName: TABLES.USER_SKILLS
+    }),
+    
+  // Get user skills - Adding the missing method
+  getUserSkills: (userId: string) => 
+    ApiService.get(`/skills/${userId}`, {
+      headers: {
+        'X-Table-Name': TABLES.USER_SKILLS
+      }
     })
 };

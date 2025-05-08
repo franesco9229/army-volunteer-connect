@@ -17,6 +17,9 @@ import { NotificationApi } from '@/services/api';
 // Flag to switch between mock and real API calls
 const USE_REAL_APIS = false;
 
+// Adding a type for the subscription
+type Subscription = string;
+
 export function NotificationsTab() {
   const { user } = useAuth();
   const [notifSettings, setNotifSettings] = useState({
@@ -35,7 +38,9 @@ export function NotificationsTab() {
       
       if (USE_REAL_APIS) {
         try {
-          const subscriptions = await NotificationApi.getUserSubscriptions(user.id);
+          // Properly typed subscription array
+          const subscriptions = await NotificationApi.getUserSubscriptions(user.id) as Subscription[];
+          
           // Map subscriptions to UI state
           // This is simplified - in a real app you'd map the ARNs to specific settings
           setNotifSettings({
@@ -78,7 +83,7 @@ export function NotificationsTab() {
           } else {
             // For unsubscribe, you'd need to store the subscription ARNs
             // This is simplified
-            const subscriptions = await NotificationApi.getUserSubscriptions(user.id);
+            const subscriptions = await NotificationApi.getUserSubscriptions(user.id) as Subscription[];
             const sub = subscriptions.find(s => s.includes(topicMap[setting]));
             if (sub) {
               await NotificationApi.unsubscribeFromTopic(sub);
