@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Opportunity, Application } from '@/types';
+import { Opportunity, Application, Skill } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   fetchOpportunities,
@@ -16,7 +16,7 @@ export function useOpportunities() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userSkills, setUserSkills] = useState([]);
+  const [userSkills, setUserSkills] = useState<Skill[]>([]);
   const navigate = useNavigate();
 
   // Get IDs of opportunities the user has already applied to
@@ -36,6 +36,7 @@ export function useOpportunities() {
         
         // Fetch user skills
         const skills = await fetchUserSkills(user.id);
+        console.log("Fetched user skills:", skills);
         setUserSkills(skills);
       } else {
         setApplications([]);

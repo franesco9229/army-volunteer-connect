@@ -24,7 +24,7 @@ export function UseProfileSkillsCheckbox({
       />
       <label 
         htmlFor="useProfileSkills" 
-        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
       >
         {useProfileSkillsLabel}
       </label>

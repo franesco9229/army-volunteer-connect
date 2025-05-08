@@ -15,18 +15,30 @@ export const mockSkills: Skill[] = [
 export const fetchUserSkills = async (userId: string): Promise<Skill[]> => {
   // Simulate API call delay
   await new Promise(resolve => setTimeout(resolve, 500));
+  console.log(`Fetching skills for user ${userId}`);
   
   // Return different skills for different users
+  let skills: Skill[] = [];
+  
   switch (userId) {
     case "user-1":
-      return mockSkills.slice(0, 5);
+      skills = mockSkills.slice(0, 5);
+      break;
     case "user-2":
-      return mockSkills.slice(2, 6);
+      skills = mockSkills.slice(2, 6);
+      break;
     case "user-3":
-      return mockSkills.slice(4, 8);
+      skills = mockSkills.slice(4, 8);
+      break;
+    case "user-123": // Default mock user ID
+      skills = mockSkills.slice(0, 4);
+      break;
     default:
-      return [];
+      skills = [];
   }
+  
+  console.log(`Returning ${skills.length} skills for user ${userId}:`, skills);
+  return skills;
 };
 
 export const updateUserSkill = async (userId: string, skillId: string, level: SkillLevel): Promise<Skill[]> => {
