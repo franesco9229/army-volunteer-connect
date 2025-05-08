@@ -1,0 +1,23 @@
+
+export const techRoles = [
+  { value: "frontend-developer", label: "Frontend Developer" },
+  { value: "backend-developer", label: "Backend Developer" },
+  { value: "fullstack-developer", label: "Fullstack Developer" },
+  { value: "mobile-developer", label: "Mobile Developer" },
+  { value: "devops-engineer", label: "DevOps Engineer" },
+  { value: "data-scientist", label: "Data Scientist" },
+  { value: "data-engineer", label: "Data Engineer" },
+  { value: "data-analyst", label: "Data Analyst" },
+  { value: "ux-designer", label: "UX Designer" },
+  { value: "ui-designer", label: "UI Designer" },
+  { value: "product-designer", label: "Product Designer" },
+  { value: "product-manager", label: "Product Manager" },
+  { value: "project-manager", label: "Project Manager" },
+  { value: "business-analyst", label: "Business Analyst" },
+  { value: "scrum-master", label: "Scrum Master" },
+  { value: "qa-engineer", label: "QA Engineer" },
+  { value: "technical-writer", label: "Technical Writer" },
+  { value: "security-engineer", label: "Security Engineer" },
+  { value: "cloud-architect", label: "Cloud Architect" },
+  { value: "technical-lead", label: "Technical Lead" },
+];

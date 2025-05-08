@@ -1,8 +1,9 @@
 
-import { useState, useCallback } from 'react';
-import { Opportunity, OpportunityStatus } from '@/types';
+import { useState, useCallback, useEffect } from 'react';
+import { Opportunity, OpportunityStatus, User } from '@/types';
+import { techRoles } from '@/data/techRoles';
 
-export function useOpportunityFilters() {
+export function useOpportunityFilters(currentUser: User | null = null) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   
@@ -10,20 +11,36 @@ export function useOpportunityFilters() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [timeCommitment, setTimeCommitment] = useState<string>("any");
   const [roleType, setRoleType] = useState<string>("any");
-  const [skillInputValue, setSkillInputValue] = useState('');
 
-  const handleAddSkill = useCallback(() => {
-    if (skillInputValue.trim() && selectedSkills.length < 2) {
-      setSelectedSkills([...selectedSkills, skillInputValue.trim()]);
-      setSkillInputValue('');
+  // Auto-apply user skills if available
+  useEffect(() => {
+    if (currentUser?.skills?.length) {
+      // Map user skills to tech roles
+      const matchedSkills = currentUser.skills
+        .map(skill => {
+          // Find matching tech role by name (case insensitive)
+          const matchedRole = techRoles.find(role => 
+            role.label.toLowerCase() === skill.name.toLowerCase()
+          );
+          return matchedRole?.value;
+        })
+        .filter(Boolean) as string[];
+      
+      // Take up to 2 skills
+      setSelectedSkills(matchedSkills.slice(0, 2));
     }
-  }, [skillInputValue, selectedSkills]);
+  }, [currentUser]);
 
   const clearFilters = useCallback(() => {
     setSelectedSkills([]);
     setTimeCommitment("any");
     setRoleType("any");
-    setSkillInputValue('');
+  }, []);
+
+  // Find role label for displaying in filter badges
+  const getRoleLabel = useCallback((value: string) => {
+    const role = techRoles.find(role => role.value === value);
+    return role ? role.label : value;
   }, []);
 
   // Filter opportunities based on search term, filters, and status
@@ -40,11 +57,12 @@ export function useOpportunityFilters() {
       
       // Skills filter
       const matchesSkills = selectedSkills.length === 0 || 
-        selectedSkills.some(skill => 
-          opp.requiredSkills.some(oppSkill => 
-            oppSkill.toLowerCase().includes(skill.toLowerCase())
-          )
-        );
+        selectedSkills.some(skill => {
+          const roleLabel = getRoleLabel(skill);
+          return opp.requiredSkills.some(oppSkill => 
+            oppSkill.toLowerCase().includes(roleLabel.toLowerCase())
+          );
+        });
         
       // Role type filter
       const matchesRole = roleType === "any" || (opp.role && opp.role.toLowerCase() === roleType.toLowerCase());
@@ -73,7 +91,7 @@ export function useOpportunityFilters() {
       }
       return false;
     });
-  }, [searchTerm, selectedSkills, roleType, timeCommitment, activeTab]);
+  }, [searchTerm, selectedSkills, roleType, timeCommitment, activeTab, getRoleLabel]);
 
   return {
     searchTerm,
@@ -86,10 +104,8 @@ export function useOpportunityFilters() {
     setTimeCommitment,
     roleType,
     setRoleType,
-    skillInputValue,
-    setSkillInputValue,
-    handleAddSkill,
     clearFilters,
-    filterOpportunities
+    filterOpportunities,
+    getRoleLabel
   };
 }

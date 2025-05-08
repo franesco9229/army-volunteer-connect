@@ -9,55 +9,57 @@ import {
   Settings,
   LogOut,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-} from "@/components/ui/sidebar";
-
-const navItems = [
-  {
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    href: "/"
-  },
-  {
-    label: "Profile",
-    icon: User,
-    href: "/profile"
-  },
-  {
-    label: "Opportunities",
-    icon: Briefcase,
-    href: "/opportunities"
-  },
-  {
-    label: "Applications",
-    icon: FileText,
-    href: "/applications"
-  },
-  {
-    label: "Volunteering History",
-    icon: Clock,
-    href: "/history"
-  },
-  {
-    label: "Settings",
-    icon: Settings,
-    href: "/settings"
-  }
-];
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function AppSidebar() {
+  const { isAuthenticated, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  // Define navigation items based on authentication status
+  const publicNavItems = [
+    {
+      label: "Opportunities",
+      icon: Briefcase,
+      href: "/opportunities"
+    }
+  ];
+
+  const privateNavItems = [
+    {
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      href: "/"
+    },
+    {
+      label: "Profile",
+      icon: User,
+      href: "/profile"
+    },
+    {
+      label: "Applications",
+      icon: FileText,
+      href: "/applications"
+    },
+    {
+      label: "Volunteering History",
+      icon: Clock,
+      href: "/history"
+    },
+    {
+      label: "Settings",
+      icon: Settings,
+      href: "/settings"
+    }
+  ];
+
+  const navItems = isAuthenticated ? [...publicNavItems, ...privateNavItems] : publicNavItems;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/opportunities');
+  };
+
   return (
     <div className="h-full w-full flex flex-col">
       {/* Header */}
@@ -92,10 +94,22 @@ export function AppSidebar() {
       
       {/* Footer */}
       <div className="p-4 border-t">
-        <button className="w-full flex items-center justify-center space-x-2 p-2 rounded-md hover:bg-sta-purple hover:text-white transition-colors">
-          <LogOut className="h-4 w-4" />
-          <span>Sign Out</span>
-        </button>
+        {isAuthenticated ? (
+          <button 
+            className="w-full flex items-center justify-center space-x-2 p-2 rounded-md hover:bg-sta-purple hover:text-white transition-colors"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Sign Out</span>
+          </button>
+        ) : (
+          <Link 
+            to="/login"
+            className="w-full flex items-center justify-center space-x-2 p-2 rounded-md bg-sta-purple text-white hover:bg-sta-purple/90 transition-colors"
+          >
+            <span>Sign In</span>
+          </Link>
+        )}
       </div>
     </div>
   );

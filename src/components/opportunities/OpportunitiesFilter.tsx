@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Search, Filter, X, Check } from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { 
@@ -34,9 +34,6 @@ interface OpportunitiesFilterProps {
   roleType: string;
   onRoleTypeChange: (value: string) => void;
   onClearFilters: () => void;
-  skillInputValue: string;
-  onSkillInputChange: (value: string) => void;
-  onAddSkill: () => void;
 }
 
 export function OpportunitiesFilter({
@@ -48,10 +45,7 @@ export function OpportunitiesFilter({
   onTimeCommitmentChange,
   roleType,
   onRoleTypeChange,
-  onClearFilters,
-  skillInputValue,
-  onSkillInputChange,
-  onAddSkill
+  onClearFilters
 }: OpportunitiesFilterProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
@@ -97,9 +91,6 @@ export function OpportunitiesFilter({
             <SkillsFilterSection 
               selectedSkills={selectedSkills}
               onSkillsChange={onSkillsChange}
-              skillInputValue={skillInputValue}
-              onSkillInputChange={onSkillInputChange}
-              onAddSkill={onAddSkill}
             />
             
             <div className="space-y-2">

@@ -8,7 +8,7 @@ import { useOpportunityFilters } from './opportunities/hooks/useOpportunityFilte
 import { OpportunityTabs } from './opportunities/components/OpportunityTabs';
 
 export default function Opportunities() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const {
     opportunities,
     isLoading,
@@ -27,12 +27,9 @@ export default function Opportunities() {
     setTimeCommitment,
     roleType,
     setRoleType,
-    skillInputValue,
-    setSkillInputValue,
-    handleAddSkill,
     clearFilters,
     filterOpportunities
-  } = useOpportunityFilters();
+  } = useOpportunityFilters(user);
 
   const filteredOpportunities = filterOpportunities(opportunities, appliedOpportunityIds);
 
@@ -56,9 +53,6 @@ export default function Opportunities() {
           roleType={roleType}
           onRoleTypeChange={setRoleType}
           onClearFilters={clearFilters}
-          skillInputValue={skillInputValue}
-          onSkillInputChange={setSkillInputValue}
-          onAddSkill={handleAddSkill}
         />
         
         <OpportunityTabs

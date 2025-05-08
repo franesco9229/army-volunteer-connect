@@ -114,7 +114,7 @@ export const ApiService = {
   }
 };
 
-// API endpoints for volunteering opportunities
+// AWS API endpoints based on provided specifications
 export const VolunteeringApi = {
   // Get all available opportunities
   getOpportunities: (filters?: any) => 
@@ -123,9 +123,9 @@ export const VolunteeringApi = {
       headers: filters ? { 'X-Filter-Params': JSON.stringify(filters) } : {}
     }),
   
-  // Apply for a specific opportunity
+  // Apply for a specific opportunity (register interest)
   applyForOpportunity: (opportunityId: string, userId: string, additionalData?: any) => 
-    ApiService.post('/applications', { 
+    ApiService.post('/register-interest', { 
       opportunityId, 
       userId,
       ...additionalData,
@@ -137,19 +137,31 @@ export const VolunteeringApi = {
   
   // Get applications for a specific user
   getUserApplications: (userId: string) => 
-    ApiService.get(`/users/${userId}/applications`),
+    ApiService.get(`/applications/${userId}`),
     
-  // Admin: Get all applications for review
-  getApplicationsForReview: () =>
-    ApiService.get('/admin/applications/pending'),
+  // Get volunteering records for a user
+  getUserVolunteeringRecords: (userId: string) => 
+    ApiService.get(`/volunteering-records/${userId}`),
     
-  // Admin: Approve or reject an application
-  updateApplicationStatus: (applicationId: string, status: 'approved' | 'rejected', notes?: string) =>
-    ApiService.put(`/admin/applications/${applicationId}/status`, { status, notes }),
-  
-  // Get volunteering history for a specific user
-  getUserVolunteeringHistory: (userId: string) => 
-    ApiService.get(`/users/${userId}/history`)
+  // Get registered opportunities for a user
+  getUserRegisteredOpportunities: (userId: string) => 
+    ApiService.get(`/registered-opportunities/${userId}`),
+    
+  // Update volunteering hours
+  updateVolunteeringHours: (recordId: string, hoursData: any) => 
+    ApiService.post(`/update-volunteering-record`, {
+      recordId,
+      ...hoursData,
+      timestamp: new Date().toISOString()
+    }),
+    
+  // Update user skills
+  updateUserSkills: (userId: string, skills: any[]) => 
+    ApiService.post(`/update-skills`, {
+      userId,
+      skills,
+      timestamp: new Date().toISOString()
+    })
 };
 
 // Integration with Jira for volunteer assignments

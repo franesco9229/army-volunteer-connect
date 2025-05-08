@@ -54,7 +54,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Navigate to="/opportunities" replace />} />
               <Route path="/opportunities" element={<Opportunities />} />
               <Route path="/applications" element={
                 <ProtectedRoute>
