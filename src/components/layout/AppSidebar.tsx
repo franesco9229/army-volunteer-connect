@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Clock, LayoutDashboard, User, Briefcase, FileText, Settings, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+
 export function AppSidebar() {
   const {
     isAuthenticated,
@@ -15,6 +17,7 @@ export function AppSidebar() {
     icon: Briefcase,
     href: "/opportunities"
   }];
+  
   const privateNavItems = [{
     label: "Dashboard",
     icon: LayoutDashboard,
@@ -36,12 +39,16 @@ export function AppSidebar() {
     icon: Settings,
     href: "/settings"
   }];
+  
   const navItems = isAuthenticated ? [...publicNavItems, ...privateNavItems] : publicNavItems;
+  
   const handleSignOut = async () => {
     await signOut();
     navigate('/opportunities');
   };
-  return <div className="h-full w-full flex flex-col">
+  
+  return (
+    <div className="h-full w-full flex flex-col">
       {/* Header */}
       <div className="flex items-center p-4 border-b">
         <div className="flex items-center space-x-2">
@@ -54,16 +61,32 @@ export function AppSidebar() {
       <div className="flex-1 overflow-auto p-4">
         <div className="mb-2 text-sm font-medium text-muted-foreground">Menu</div>
         <ul className="space-y-1">
-          {navItems.map(item => <li key={item.label}>
-              <Link to={item.href} className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-sta-purple hover:text-white transition-colors">
+          {navItems.map(item => (
+            <li key={item.label}>
+              <Link 
+                to={item.href} 
+                className="flex items-center rounded-md px-3 py-2 text-sm hover:bg-sta-purple hover:text-white transition-colors"
+              >
                 <item.icon className="mr-2 h-4 w-4" />
                 <span>{item.label}</span>
               </Link>
-            </li>)}
+            </li>
+          ))}
         </ul>
       </div>
       
-      {/* Footer */}
-      
-    </div>;
+      {/* Footer with sign out for authenticated users */}
+      {isAuthenticated && (
+        <div className="p-4 border-t">
+          <button
+            onClick={handleSignOut}
+            className="flex items-center w-full rounded-md px-3 py-2 text-sm hover:bg-red-100 hover:text-red-600 transition-colors text-left"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Sign Out</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }

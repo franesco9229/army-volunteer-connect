@@ -11,14 +11,19 @@ import {
   fetchUserVolunteeringRecords,
   mockCurrentUser
 } from '@/data/mockData';
+import { useAuth } from '@/contexts/AuthContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Index() {
+  const { isAuthenticated, user } = useAuth();
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
   const [volunteeringRecords, setVolunteeringRecords] = useState<VolunteeringRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchData = async () => {
+    if (!isAuthenticated) return;
+    
     setIsLoading(true);
     try {
       const [oppsData, appsData, recordsData] = await Promise.all([
@@ -39,7 +44,28 @@ export default function Index() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
+
+  // Show loading skeleton while data loads
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-8 animate-fade-in">
+          <div>
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24" />
+            ))}
+          </div>
+          <Skeleton className="h-64" />
+          <Skeleton className="h-64" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   // Calculate statistics
   const totalHours = mockCurrentUser.totalVolunteerHours;

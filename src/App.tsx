@@ -45,6 +45,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Dashboard route that redirects unauthenticated users
+const DashboardRoute = () => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/opportunities" replace />;
+  }
+  
+  return <Index />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -54,7 +65,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Navigate to="/opportunities" replace />} />
+              <Route path="/" element={<DashboardRoute />} />
               <Route path="/opportunities" element={<Opportunities />} />
               <Route path="/applications" element={
                 <ProtectedRoute>
