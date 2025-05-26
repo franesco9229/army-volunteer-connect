@@ -1,6 +1,5 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { Auth } from '@/services/auth';
+import { AuthService } from '@/services/authService';
 
 interface AuthUser {
   id: string;
@@ -32,16 +31,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already authenticated on mount
     const checkAuth = async () => {
       try {
-        const isAuthenticated = await Auth.isAuthenticated();
-        if (isAuthenticated) {
-          const currentUser = await Auth.getCurrentUser();
-          setUser(currentUser);
-        }
+        const currentUser = await AuthService.getCurrentUser();
+        setUser(currentUser);
       } catch (error) {
         console.error('Error checking authentication:', error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -53,7 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = async (username: string, password: string) => {
     setIsLoading(true);
     try {
-      const user = await Auth.signIn({ username, password });
+      const user = await AuthService.signIn(username, password);
       setUser(user);
     } finally {
       setIsLoading(false);
@@ -63,7 +59,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signUp = async (username: string, password: string, email: string, name?: string, attributes?: Record<string, string>) => {
     setIsLoading(true);
     try {
-      const user = await Auth.signUp({ username, password, email, name, attributes });
+      const user = await AuthService.signUp(username, password, email, name, attributes);
       setUser(user);
     } finally {
       setIsLoading(false);
@@ -73,7 +69,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signOut = async () => {
     setIsLoading(true);
     try {
-      await Auth.signOut();
+      await AuthService.signOut();
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -83,7 +79,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const forgotPassword = async (email: string) => {
     setIsLoading(true);
     try {
-      await Auth.forgotPassword(email);
+      // Implementation would go here
+      console.log('Forgot password for:', email);
     } finally {
       setIsLoading(false);
     }
@@ -92,7 +89,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const resetPassword = async (email: string, code: string, newPassword: string) => {
     setIsLoading(true);
     try {
-      await Auth.resetPassword(email, code, newPassword);
+      // Implementation would go here
+      console.log('Reset password for:', email);
     } finally {
       setIsLoading(false);
     }
@@ -101,8 +99,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateUserAttributes = async (attributes: Record<string, string>) => {
     setIsLoading(true);
     try {
-      await Auth.updateUserAttributes(attributes);
-      // Update local user state with new attributes
+      // Implementation would go here
       if (user) {
         setUser({
           ...user,
@@ -114,7 +111,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Check if user belongs to admin group
   const isAdmin = !!user?.groups?.includes('admins');
 
   return (

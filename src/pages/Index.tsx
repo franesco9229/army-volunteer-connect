@@ -1,52 +1,37 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import AppLayout from '@/components/layout/AppLayout';
-import { StatsSection } from '@/components/dashboard/StatsSection';
-import { RecentOpportunities } from '@/components/dashboard/RecentOpportunities';
-import { ApplicationsStatus } from '@/components/dashboard/ApplicationsStatus';
-import { Opportunity, Application, VolunteeringRecord, VolunteeringRecordStatus, ApplicationStatus } from '@/types';
-import { 
-  fetchOpportunities, 
-  fetchUserApplications, 
-  fetchUserVolunteeringRecords,
-  mockCurrentUser
-} from '@/data/mockData';
+import { DashboardContent } from '@/components/dashboard/DashboardContent';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { mockCurrentUser } from '@/data/mockData';
 
 export default function Index() {
-  const { isAuthenticated, user } = useAuth();
-  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [volunteeringRecords, setVolunteeringRecords] = useState<VolunteeringRecord[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
+  const { 
+    opportunities, 
+    applications, 
+    volunteeringRecords, 
+    isLoading, 
+    error, 
+    refetchData 
+  } = useDashboardData();
 
-  const fetchData = async () => {
-    if (!isAuthenticated) return;
-    
-    setIsLoading(true);
-    try {
-      const [oppsData, appsData, recordsData] = await Promise.all([
-        fetchOpportunities(),
-        fetchUserApplications(mockCurrentUser.id),
-        fetchUserVolunteeringRecords(mockCurrentUser.id)
-      ]);
-      
-      setOpportunities(oppsData);
-      setApplications(appsData);
-      setVolunteeringRecords(recordsData);
-    } catch (error) {
-      console.error("Error fetching dashboard data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  if (!isAuthenticated) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Welcome to Volunteer App</h2>
+            <p className="text-muted-foreground">Please sign in to access your dashboard.</p>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
 
-  useEffect(() => {
-    fetchData();
-  }, [isAuthenticated]);
-
-  // Show loading skeleton while data loads
   if (isLoading) {
     return (
       <AppLayout>
@@ -67,47 +52,27 @@ export default function Index() {
     );
   }
 
-  // Calculate statistics
-  const totalHours = mockCurrentUser.totalVolunteerHours;
-  const activeProjects = volunteeringRecords.filter(
-    record => record.status === VolunteeringRecordStatus.Active
-  ).length;
-  const completedProjects = volunteeringRecords.filter(
-    record => record.status === VolunteeringRecordStatus.Completed
-  ).length;
-  const pendingApplications = applications.filter(
-    app => app.status === ApplicationStatus.Pending
-  ).length;
+  if (error) {
+    return (
+      <AppLayout>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
-      <div className="space-y-8 animate-fade-in">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Welcome, {mockCurrentUser.name}</h1>
-          <p className="text-muted-foreground">
-            Track your volunteering journey and find new opportunities.
-          </p>
-        </div>
-        
-        <StatsSection
-          totalHours={totalHours}
-          activeProjects={activeProjects}
-          completedProjects={completedProjects}
-          pendingApplications={pendingApplications}
-        />
-        
-        <ApplicationsStatus 
-          applications={applications} 
-          opportunities={opportunities} 
-        />
-        
-        <RecentOpportunities 
-          opportunities={opportunities}
-          applications={applications}
-          userId={mockCurrentUser.id}
-          onApplicationSubmitted={fetchData}
-        />
-      </div>
+      <DashboardContent
+        userName={mockCurrentUser.name}
+        totalHours={mockCurrentUser.totalVolunteerHours}
+        opportunities={opportunities}
+        applications={applications}
+        volunteeringRecords={volunteeringRecords}
+        userId={mockCurrentUser.id}
+        onApplicationSubmitted={refetchData}
+      />
     </AppLayout>
   );
 }
