@@ -210,11 +210,26 @@ export const Auth = {
     } catch (error) {
       console.error("Cognito sign up failed with detailed error:", error);
       
-      // Log specific error details to help with debugging
+      // Enhanced error logging for debugging
       if (error instanceof Error) {
         console.error("Error message:", error.message);
         console.error("Error name:", error.name);
         console.error("Error stack:", error.stack);
+        
+        // Log the full error object for network errors
+        if (error.message.includes('network error') || error.message.includes('Network Error')) {
+          console.error("Full error object:", error);
+          console.error("Error constructor:", error.constructor.name);
+          
+          // Check if it's a fetch error
+          if (error.message.includes('fetch')) {
+            console.error("🔧 CORS/Network Issue Detected:");
+            console.error("   → Check if your User Pool region is correct");
+            console.error("   → Verify the User Pool allows public signup");
+            console.error("   → Check browser network tab for CORS errors");
+            console.error("   → Ensure your User Pool exists and is active");
+          }
+        }
         
         // Check for specific Cognito errors
         if (error.message.includes('SECRET_HASH')) {
@@ -229,6 +244,22 @@ export const Auth = {
         
         if (error.message.includes('InvalidPasswordException')) {
           throw new Error("Password does not meet requirements. Please choose a stronger password.");
+        }
+        
+        if (error.message.includes('InvalidParameterException')) {
+          console.error("🔧 Invalid Parameter Error Details:");
+          console.error("   → Check User Pool attribute requirements");
+          console.error("   → Verify email format is valid");
+          console.error("   → Check if username requirements are met");
+          throw new Error("Invalid parameters. Check email format and User Pool requirements.");
+        }
+        
+        if (error.message.includes('ResourceNotFoundException')) {
+          console.error("🔧 Resource Not Found Error:");
+          console.error("   → Verify User Pool ID is correct");
+          console.error("   → Check if User Pool exists in the specified region");
+          console.error("   → Confirm the region setting matches your AWS setup");
+          throw new Error("User Pool not found. Please verify your configuration.");
         }
       }
       
