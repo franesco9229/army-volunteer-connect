@@ -1,7 +1,6 @@
-
-import React, { createContext, useContext, ReactNode } from 'react';
-import { useAuth as useOIDCAuth } from 'react-oidc-context';
-import { OIDCAuthService } from '@/services/oidcAuthService';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { AuthService } from '@/services/authService';
+import { getCognitoConfig, configureCognito } from '@/services/cognitoConfig';
 
 export interface AuthUser {
   id: string;
@@ -18,8 +17,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   isAdmin: boolean;
-  signIn: () => Promise<void>;
-  signUp: () => Promise<void>;
+  signIn: (username: string, password: string) => Promise<void>;
+  signUp: (username: string, password: string, email: string, name?: string, attributes?: Record<string, string>) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
@@ -29,48 +28,104 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const oidcAuth = useOIDCAuth();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const user = oidcAuth.user ? OIDCAuthService.convertOIDCUserToAuthUser(oidcAuth.user) : null;
-  const isAuthenticated = oidcAuth.isAuthenticated;
-  const isLoading = oidcAuth.isLoading;
-  const isAdmin = !!user?.groups?.includes('admins');
+  useEffect(() => {
+    const initializeAuth = async () => {
+      try {
+        // Initialize Cognito if configured
+        const cognitoConfig = getCognitoConfig();
+        if (cognitoConfig) {
+          configureCognito(cognitoConfig);
+        }
 
-  const signIn = async () => {
-    await oidcAuth.signinRedirect();
+        // Check for existing authentication
+        const currentUser = await AuthService.getCurrentUser();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Error initializing authentication:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  const signIn = async (username: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const user = await AuthService.signIn(username, password);
+      setUser(user);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const signUp = async () => {
-    // For OIDC, signup typically redirects to the same signin flow
-    // where users can choose to sign up on the Cognito hosted UI
-    await oidcAuth.signinRedirect();
+  const signUp = async (username: string, password: string, email: string, name?: string, attributes?: Record<string, string>) => {
+    setIsLoading(true);
+    try {
+      const user = await AuthService.signUp(username, password, email, name, attributes);
+      setUser(user);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signOut = async () => {
-    // Use the OIDC context's removeUser method
-    await oidcAuth.removeUser();
+    setIsLoading(true);
+    try {
+      await AuthService.signOut();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const forgotPassword = async (email: string) => {
-    console.log('Forgot password for:', email);
-    // This would typically redirect to Cognito's forgot password flow
+    setIsLoading(true);
+    try {
+      // Implementation would go here
+      console.log('Forgot password for:', email);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const resetPassword = async (email: string, code: string, newPassword: string) => {
-    console.log('Reset password for:', email);
-    // This would typically be handled by Cognito's hosted UI
+    setIsLoading(true);
+    try {
+      // Implementation would go here
+      console.log('Reset password for:', email);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const updateUserAttributes = async (attributes: Record<string, string>) => {
-    console.log('Update attributes:', attributes);
-    // This would typically require API calls to Cognito
+    setIsLoading(true);
+    try {
+      // Implementation would go here
+      if (user) {
+        setUser({
+          ...user,
+          attributes: { ...user.attributes, ...attributes }
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const isAdmin = !!user?.groups?.includes('admins');
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated,
+        isAuthenticated: !!user,
         isLoading,
         isAdmin,
         signIn,
