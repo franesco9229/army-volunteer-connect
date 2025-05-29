@@ -41,31 +41,8 @@ export class AuthService {
     } catch (error) {
       console.error('Sign up failed:', error);
       
-      // If Cognito signup fails due to configuration issues, fall back to mock authentication
-      if (error instanceof Error && (
-        error.message.includes('SECRET_HASH') || 
-        error.message.includes('Client') ||
-        error.message.includes('configured with secret')
-      )) {
-        console.log('Cognito configuration issue detected, falling back to mock authentication');
-        
-        // Create mock user and auto-sign them in
-        const mockUser: AuthUser = {
-          id: `mock-user-${Date.now()}`,
-          username: email,
-          email: email,
-          name: name || email.split('@')[0] || 'Demo User',
-          groups: ['users'],
-          isAdmin: false
-        };
-        
-        Auth.currentUser = mockUser;
-        Auth.currentSession = 'mock-session-token';
-        localStorage.setItem('mock_auth_user', JSON.stringify(mockUser));
-        
-        return mockUser;
-      }
-      
+      // Always throw error for signup - don't auto-fallback to mock
+      // This ensures the signup page can handle the error and redirect properly
       throw new Error('Registration failed. Please try again.');
     }
   }
