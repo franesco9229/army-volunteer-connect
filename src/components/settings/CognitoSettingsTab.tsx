@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Shield, Save, Trash2, Info, Terminal, RefreshCw } from 'lucide-react';
+import { Shield, Save, Trash2, Info, Terminal, RefreshCw, LogIn, UserPlus } from 'lucide-react';
 import { getCognitoConfig, saveCognitoConfig } from '@/services/cognitoConfig';
 import { toast } from '@/components/ui/sonner';
 import { AuthService } from '@/services/authService';
@@ -29,6 +28,12 @@ export const CognitoSettingsTab = () => {
   const [consoleMessages, setConsoleMessages] = useState<ConsoleMessage[]>([]);
   const [isTesting, setIsTesting] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
+
+  // Test login/signup state
+  const [testEmail, setTestEmail] = useState('');
+  const [testPassword, setTestPassword] = useState('');
+  const [testName, setTestName] = useState('');
+  const [isTestingAuth, setIsTestingAuth] = useState(false);
 
   const addConsoleMessage = (type: ConsoleMessage['type'], message: string) => {
     const newMessage: ConsoleMessage = {
@@ -160,6 +165,65 @@ export const CognitoSettingsTab = () => {
       }
     } finally {
       setIsTesting(false);
+    }
+  };
+
+  const testLogin = async () => {
+    if (!testEmail || !testPassword) {
+      addConsoleMessage('error', 'Please enter both email and password for login test');
+      return;
+    }
+
+    setIsTestingAuth(true);
+    addConsoleMessage('info', `Testing login for: ${testEmail}`);
+
+    try {
+      await AuthService.signIn(testEmail, testPassword);
+      addConsoleMessage('success', `✅ Login successful for ${testEmail}`);
+      toast.success('Login test successful!');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addConsoleMessage('error', `❌ Login failed: ${errorMessage}`);
+      
+      if (errorMessage.includes('NotAuthorizedException')) {
+        addConsoleMessage('info', '🔧 This usually means incorrect username or password');
+      } else if (errorMessage.includes('UserNotFoundException')) {
+        addConsoleMessage('info', '🔧 User not found - try signing up first');
+      } else if (errorMessage.includes('SECRET_HASH')) {
+        addConsoleMessage('error', '🔧 Client secret detected - disable in Cognito console');
+      }
+    } finally {
+      setIsTestingAuth(false);
+    }
+  };
+
+  const testSignup = async () => {
+    if (!testEmail || !testPassword || !testName) {
+      addConsoleMessage('error', 'Please enter email, password, and name for signup test');
+      return;
+    }
+
+    setIsTestingAuth(true);
+    addConsoleMessage('info', `Testing signup for: ${testEmail}`);
+
+    try {
+      await AuthService.signUp(testEmail, testPassword, testEmail, testName);
+      addConsoleMessage('success', `✅ Signup successful for ${testEmail}`);
+      addConsoleMessage('info', 'Check your email for verification code if required');
+      toast.success('Signup test successful!');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      addConsoleMessage('error', `❌ Signup failed: ${errorMessage}`);
+      
+      if (errorMessage.includes('UsernameExistsException')) {
+        addConsoleMessage('info', '🔧 User already exists - try logging in instead');
+      } else if (errorMessage.includes('InvalidPasswordException')) {
+        addConsoleMessage('info', '🔧 Password does not meet requirements');
+      } else if (errorMessage.includes('SECRET_HASH')) {
+        addConsoleMessage('error', '🔧 Client secret detected - disable in Cognito console');
+      }
+    } finally {
+      setIsTestingAuth(false);
     }
   };
 
@@ -313,6 +377,89 @@ export const CognitoSettingsTab = () => {
               <div ref={consoleEndRef} />
             </div>
           </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Login/Signup Testing */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LogIn className="h-5 w-5" />
+            Authentication Testing
+          </CardTitle>
+          <CardDescription>
+            Test login and signup functionality with your Cognito configuration
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="test-email">Email</Label>
+              <Input
+                id="test-email"
+                type="email"
+                placeholder="test@example.com"
+                value={testEmail}
+                onChange={(e) => setTestEmail(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="test-password">Password</Label>
+              <Input
+                id="test-password"
+                type="password"
+                placeholder="••••••••"
+                value={testPassword}
+                onChange={(e) => setTestPassword(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="test-name">Name (for signup)</Label>
+              <Input
+                id="test-name"
+                placeholder="John Doe"
+                value={testName}
+                onChange={(e) => setTestName(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-4">
+            <Button 
+              onClick={testLogin}
+              disabled={isTestingAuth || !testEmail || !testPassword}
+              className="flex items-center gap-2"
+            >
+              {isTestingAuth ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <LogIn className="h-4 w-4" />
+              )}
+              Test Login
+            </Button>
+            
+            <Button 
+              variant="outline"
+              onClick={testSignup}
+              disabled={isTestingAuth || !testEmail || !testPassword || !testName}
+              className="flex items-center gap-2"
+            >
+              {isTestingAuth ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}
+              Test Signup
+            </Button>
+          </div>
+          
+          <div className="text-sm text-muted-foreground">
+            <p>• Use the debug console above to see detailed authentication flow information</p>
+            <p>• For signup, check your email for verification codes if email verification is enabled</p>
+            <p>• Make sure your Cognito User Pool allows the actions you're testing</p>
+          </div>
         </CardContent>
       </Card>
     </div>
