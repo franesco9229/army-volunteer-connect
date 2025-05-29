@@ -1,3 +1,4 @@
+
 // AWS Cognito Authentication Service
 // This would be replaced with actual AWS Amplify/Cognito SDK in production
 
@@ -88,6 +89,12 @@ export const Auth = {
     
     // Use real Cognito authentication
     try {
+      console.log("Attempting Cognito sign in with config:", {
+        region: config.region,
+        userPoolId: config.userPoolId,
+        userPoolWebClientId: config.userPoolWebClientId
+      });
+
       const { isSignedIn, nextStep } = await signIn({
         username: credentials.username,
         password: credentials.password,
@@ -114,7 +121,34 @@ export const Auth = {
         throw new Error(`Sign in incomplete. Next step: ${nextStep.signInStep}`);
       }
     } catch (error) {
-      console.error("Cognito sign in failed:", error);
+      console.error("Cognito sign in failed with detailed error:", error);
+      
+      // Log specific error details to help with debugging
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error name:", error.name);
+        console.error("Error stack:", error.stack);
+        
+        // Check for specific Cognito errors
+        if (error.message.includes('SECRET_HASH')) {
+          console.error("❌ SECRET_HASH error detected. Your Cognito app client is configured with a client secret.");
+          console.error("🔧 To fix this: Go to AWS Cognito Console → User Pools → App clients → Edit your app client → Uncheck 'Generate client secret'");
+          throw new Error("Cognito configuration error: Client secret detected. Please configure your app client without a secret for web applications.");
+        }
+        
+        if (error.message.includes('NotAuthorizedException')) {
+          throw new Error("Invalid credentials. Please check your email and password.");
+        }
+        
+        if (error.message.includes('UserNotFoundException')) {
+          throw new Error("User not found. Please check your email or sign up first.");
+        }
+        
+        if (error.message.includes('UserNotConfirmedException')) {
+          throw new Error("Please verify your email address before signing in.");
+        }
+      }
+      
       throw new Error(error instanceof Error ? error.message : "Authentication failed. Please check your credentials.");
     }
   },
@@ -145,6 +179,12 @@ export const Auth = {
     
     // Use real Cognito sign up
     try {
+      console.log("Attempting Cognito sign up with config:", {
+        region: config.region,
+        userPoolId: config.userPoolId,
+        userPoolWebClientId: config.userPoolWebClientId
+      });
+
       const { isSignUpComplete, userId, nextStep } = await signUp({
         username: credentials.username,
         password: credentials.password,
@@ -168,7 +208,30 @@ export const Auth = {
         throw new Error(`Registration requires confirmation. Next step: ${nextStep.signUpStep}`);
       }
     } catch (error) {
-      console.error("Cognito sign up failed:", error);
+      console.error("Cognito sign up failed with detailed error:", error);
+      
+      // Log specific error details to help with debugging
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error name:", error.name);
+        console.error("Error stack:", error.stack);
+        
+        // Check for specific Cognito errors
+        if (error.message.includes('SECRET_HASH')) {
+          console.error("❌ SECRET_HASH error detected during signup. Your Cognito app client is configured with a client secret.");
+          console.error("🔧 To fix this: Go to AWS Cognito Console → User Pools → App clients → Edit your app client → Uncheck 'Generate client secret'");
+          throw new Error("Cognito configuration error: Client secret detected. Please configure your app client without a secret for web applications.");
+        }
+        
+        if (error.message.includes('UsernameExistsException')) {
+          throw new Error("An account with this email already exists. Please try signing in instead.");
+        }
+        
+        if (error.message.includes('InvalidPasswordException')) {
+          throw new Error("Password does not meet requirements. Please choose a stronger password.");
+        }
+      }
+      
       throw new Error(error instanceof Error ? error.message : "Registration failed. Please try again.");
     }
   },
