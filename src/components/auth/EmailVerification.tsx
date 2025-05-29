@@ -11,11 +11,12 @@ import { getCognitoConfig } from '@/services/cognitoConfig';
 
 interface EmailVerificationProps {
   email: string;
+  username?: string; // Add username prop for Cognito verification
   onVerificationComplete: () => void;
   onBack: () => void;
 }
 
-export function EmailVerification({ email, onVerificationComplete, onBack }: EmailVerificationProps) {
+export function EmailVerification({ email, username, onVerificationComplete, onBack }: EmailVerificationProps) {
   const [verificationCode, setVerificationCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -44,20 +45,20 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
     try {
       console.log('🔍 Starting verification process...');
       console.log('📧 Email being verified:', email);
+      console.log('👤 Username for verification:', username || email);
       console.log('🔢 Verification code entered:', verificationCode);
-      console.log('📏 Code length:', verificationCode.length);
-      console.log('🔤 Code type:', typeof verificationCode);
-      console.log('🧹 Code trimmed:', verificationCode.trim());
       
-      // Try with trimmed code to ensure no whitespace issues
       const cleanCode = verificationCode.trim();
       
+      // Use username if provided (for Cognito), otherwise use email
+      const usernameForVerification = username || email;
+      
       console.log('🚀 Calling confirmSignUp with parameters:');
-      console.log('   username:', email);
+      console.log('   username:', usernameForVerification);
       console.log('   confirmationCode:', cleanCode);
       
       await confirmSignUp({
-        username: email,
+        username: usernameForVerification,
         confirmationCode: cleanCode
       });
       
@@ -68,35 +69,18 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
       console.error('❌ Verification failed:', error);
       
       if (error instanceof Error) {
-        console.error('📋 Error analysis:');
-        console.error('   Error name:', error.name);
-        console.error('   Error message:', error.message);
-        console.error('   Full error object:', error);
-        
-        // Check for specific error types
         if (error.name === 'CodeMismatchException' || error.message.includes('CodeMismatchException')) {
-          console.error('🎯 CodeMismatchException detected - code is incorrect');
           toast.error('The verification code is incorrect. Please check your email and try again.');
         } else if (error.name === 'ExpiredCodeException' || error.message.includes('ExpiredCodeException')) {
-          console.error('⏰ ExpiredCodeException detected - code has expired');
           toast.error('The verification code has expired. Please request a new one.');
-        } else if (error.name === 'NotAuthorizedException' || error.message.includes('NotAuthorizedException')) {
-          console.error('🚫 NotAuthorizedException detected');
-          toast.error('Invalid verification code. Please check and try again.');
-        } else if (error.name === 'UserNotFoundException' || error.message.includes('UserNotFoundException')) {
-          console.error('👤 UserNotFoundException detected');
-          toast.error('User not found. Please try signing up again.');
         } else if (error.name === 'AliasExistsException' || error.message.includes('AliasExistsException')) {
-          console.error('✅ AliasExistsException - user already verified');
           toast.success('Email already verified! You can now sign in.');
           onVerificationComplete();
           return;
         } else {
-          console.error('❓ Unknown error type');
           toast.error(`Verification failed: ${error.message}`);
         }
       } else {
-        console.error('❓ Non-Error object thrown:', error);
         toast.error('Verification failed. Please try again.');
       }
     } finally {
@@ -118,10 +102,10 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
 
     setIsResending(true);
     try {
-      console.log('📬 Resending verification code for email:', email);
+      console.log('📬 Resending verification code for username:', username || email);
       
       await resendSignUpCode({
-        username: email
+        username: username || email
       });
       
       console.log('✅ Code resent successfully');
@@ -240,7 +224,7 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
               <p>Check your spam folder if you don't see the email.</p>
               <p>The code expires in 15 minutes.</p>
               <p className="mt-2 font-mono text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                Debug: Verification for {email}
+                Debug: Verification for {email} {username && `(username: ${username})`}
               </p>
             </>
           ) : (

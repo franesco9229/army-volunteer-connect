@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
+  const [pendingUsername, setPendingUsername] = useState(''); // Add this to store the username used
   const { signUp } = useAuth();
   const navigate = useNavigate();
   
@@ -34,12 +34,16 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
+      console.log('🚀 Starting signup process for email:', email);
+      
       await signUp(email, password, email, name);
       
       // If we reach here with Cognito, it means verification is needed
       if (hasCognitoConfig) {
         console.log('Signup successful with Cognito, showing verification screen');
         setPendingEmail(email);
+        // Store the email as username for verification (since we use email for login)
+        setPendingUsername(email);
         setShowVerification(true);
         toast.success("Account created! Please check your email for verification code.");
       } else {
@@ -60,6 +64,7 @@ export default function Signup() {
             errorMessage.includes('registration requires confirmation')) {
           console.log('Signup successful, showing verification screen');
           setPendingEmail(email);
+          setPendingUsername(email);
           setShowVerification(true);
           toast.success("Account created! Please check your email for verification code.");
           return;
@@ -80,6 +85,7 @@ export default function Signup() {
       // For other errors, show verification screen anyway (in case it's a Cognito quirk)
       console.log('Error occurred, but showing verification screen as fallback');
       setPendingEmail(email);
+      setPendingUsername(email);
       setShowVerification(true);
       toast.error("Please check your email for verification code");
     } finally {
@@ -95,6 +101,7 @@ export default function Signup() {
   const handleBackToSignup = () => {
     setShowVerification(false);
     setPendingEmail('');
+    setPendingUsername('');
   };
 
   const handleGoBack = () => {
@@ -108,6 +115,7 @@ export default function Signup() {
         <div className="w-full max-w-md">
           <EmailVerification 
             email={pendingEmail}
+            username={pendingUsername}
             onVerificationComplete={handleVerificationComplete}
             onBack={handleBackToSignup}
           />

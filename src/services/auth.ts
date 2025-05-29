@@ -1,4 +1,3 @@
-
 // AWS Cognito Authentication Service
 // This would be replaced with actual AWS Amplify/Cognito SDK in production
 
@@ -186,18 +185,15 @@ export const Auth = {
         userPoolWebClientId: config.userPoolWebClientId
       });
       
-      // Generate a unique username since email alias is configured
-      // Use a timestamp-based username to avoid conflicts
-      const uniqueUsername = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
+      // Use email as username since email alias is configured
       console.log("📝 Signup parameters:", {
-        username: uniqueUsername,
+        username: credentials.email, // Use email directly as username
         email: credentials.email,
         name: credentials.name || credentials.username.split('@')[0] || 'Demo User'
       });
 
       const { isSignUpComplete, userId, nextStep } = await signUp({
-        username: uniqueUsername,
+        username: credentials.email, // Use email as username
         password: credentials.password,
         options: {
           userAttributes: {
@@ -215,9 +211,9 @@ export const Auth = {
       });
 
       if (isSignUpComplete) {
-        // Auto sign in after successful signup using the email (since it's an alias)
+        // Auto sign in after successful signup
         return await Auth.signIn({
-          username: credentials.email, // Use email for sign in since it's an alias
+          username: credentials.email,
           password: credentials.password
         });
       } else {
