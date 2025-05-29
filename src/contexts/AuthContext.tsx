@@ -1,6 +1,6 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { AuthService } from '@/services/authService';
+import { getCognitoConfig, configureCognito } from '@/services/cognitoConfig';
 
 export interface AuthUser {
   id: string;
@@ -32,19 +32,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const initializeAuth = async () => {
       try {
+        // Initialize Cognito if configured
+        const cognitoConfig = getCognitoConfig();
+        if (cognitoConfig) {
+          configureCognito(cognitoConfig);
+        }
+
+        // Check for existing authentication
         const currentUser = await AuthService.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
-        console.error('Error checking authentication:', error);
+        console.error('Error initializing authentication:', error);
         setUser(null);
       } finally {
         setIsLoading(false);
       }
     };
 
-    checkAuth();
+    initializeAuth();
   }, []);
 
   const signIn = async (username: string, password: string) => {

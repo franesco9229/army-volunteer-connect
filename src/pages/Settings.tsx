@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Bell, 
@@ -20,6 +19,7 @@ import { NotificationsTab } from '@/components/settings/NotificationsTab';
 import { DisplayTab } from '@/components/settings/DisplayTab';
 import { PrivacyTab } from '@/components/settings/PrivacyTab';
 import { ApiSettingsTab } from '@/components/settings/ApiSettingsTab';
+import { CognitoSettingsTab } from '@/components/settings/CognitoSettingsTab';
 
 const Settings = () => {
   return (
@@ -32,6 +32,10 @@ const Settings = () => {
             <TabsTrigger value="account" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
               <span>Account</span>
+            </TabsTrigger>
+            <TabsTrigger value="cognito" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              <span>Cognito</span>
             </TabsTrigger>
             <TabsTrigger value="api" className="flex items-center gap-2">
               <SettingsIcon className="h-4 w-4" />
@@ -53,6 +57,10 @@ const Settings = () => {
 
           <TabsContent value="account">
             <AccountTab />
+          </TabsContent>
+
+          <TabsContent value="cognito">
+            <CognitoSettingsTab />
           </TabsContent>
 
           <TabsContent value="api">
