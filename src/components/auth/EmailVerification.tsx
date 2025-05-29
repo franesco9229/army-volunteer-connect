@@ -42,43 +42,61 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
 
     setIsVerifying(true);
     try {
-      console.log('Attempting to verify code for email:', email);
-      console.log('Verification code:', verificationCode);
+      console.log('🔍 Starting verification process...');
+      console.log('📧 Email being verified:', email);
+      console.log('🔢 Verification code entered:', verificationCode);
+      console.log('📏 Code length:', verificationCode.length);
+      console.log('🔤 Code type:', typeof verificationCode);
+      console.log('🧹 Code trimmed:', verificationCode.trim());
+      
+      // Try with trimmed code to ensure no whitespace issues
+      const cleanCode = verificationCode.trim();
+      
+      console.log('🚀 Calling confirmSignUp with parameters:');
+      console.log('   username:', email);
+      console.log('   confirmationCode:', cleanCode);
       
       await confirmSignUp({
         username: email,
-        confirmationCode: verificationCode
+        confirmationCode: cleanCode
       });
       
-      console.log('Verification successful!');
+      console.log('✅ Verification successful!');
       toast.success('Email verified successfully!');
       onVerificationComplete();
     } catch (error) {
-      console.error('Verification failed:', error);
+      console.error('❌ Verification failed:', error);
       
       if (error instanceof Error) {
-        console.error('Error details:', {
-          message: error.message,
-          name: error.name,
-          stack: error.stack
-        });
+        console.error('📋 Error analysis:');
+        console.error('   Error name:', error.name);
+        console.error('   Error message:', error.message);
+        console.error('   Full error object:', error);
         
-        if (error.message.includes('CodeMismatchException')) {
+        // Check for specific error types
+        if (error.name === 'CodeMismatchException' || error.message.includes('CodeMismatchException')) {
+          console.error('🎯 CodeMismatchException detected - code is incorrect');
+          toast.error('The verification code is incorrect. Please check your email and try again.');
+        } else if (error.name === 'ExpiredCodeException' || error.message.includes('ExpiredCodeException')) {
+          console.error('⏰ ExpiredCodeException detected - code has expired');
+          toast.error('The verification code has expired. Please request a new one.');
+        } else if (error.name === 'NotAuthorizedException' || error.message.includes('NotAuthorizedException')) {
+          console.error('🚫 NotAuthorizedException detected');
           toast.error('Invalid verification code. Please check and try again.');
-        } else if (error.message.includes('ExpiredCodeException')) {
-          toast.error('Verification code has expired. Please request a new one.');
-        } else if (error.message.includes('NotAuthorizedException')) {
-          toast.error('Invalid verification code. Please check and try again.');
-        } else if (error.message.includes('UserNotFoundException')) {
+        } else if (error.name === 'UserNotFoundException' || error.message.includes('UserNotFoundException')) {
+          console.error('👤 UserNotFoundException detected');
           toast.error('User not found. Please try signing up again.');
-        } else if (error.message.includes('AliasExistsException')) {
+        } else if (error.name === 'AliasExistsException' || error.message.includes('AliasExistsException')) {
+          console.error('✅ AliasExistsException - user already verified');
           toast.success('Email already verified! You can now sign in.');
           onVerificationComplete();
           return;
         } else {
-          toast.error('Verification failed. Please try again.');
+          console.error('❓ Unknown error type');
+          toast.error(`Verification failed: ${error.message}`);
         }
       } else {
+        console.error('❓ Non-Error object thrown:', error);
         toast.error('Verification failed. Please try again.');
       }
     } finally {
@@ -100,17 +118,17 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
 
     setIsResending(true);
     try {
-      console.log('Resending verification code for email:', email);
+      console.log('📬 Resending verification code for email:', email);
       
       await resendSignUpCode({
         username: email
       });
       
-      console.log('Code resent successfully');
+      console.log('✅ Code resent successfully');
       toast.success('New verification code sent to your email');
       setVerificationCode('');
     } catch (error) {
-      console.error('Resend failed:', error);
+      console.error('❌ Resend failed:', error);
       
       if (error instanceof Error) {
         if (error.message.includes('LimitExceededException')) {
@@ -153,7 +171,10 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
             <InputOTP
               maxLength={6}
               value={verificationCode}
-              onChange={setVerificationCode}
+              onChange={(value) => {
+                console.log('🔢 OTP input changed to:', value);
+                setVerificationCode(value);
+              }}
             >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
@@ -218,6 +239,9 @@ export function EmailVerification({ email, onVerificationComplete, onBack }: Ema
             <>
               <p>Check your spam folder if you don't see the email.</p>
               <p>The code expires in 15 minutes.</p>
+              <p className="mt-2 font-mono text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                Debug: Verification for {email}
+              </p>
             </>
           ) : (
             <p>Demo mode: Enter any 6-digit code to continue</p>
