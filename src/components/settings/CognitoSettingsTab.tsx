@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,12 @@ export const CognitoSettingsTab = () => {
   useEffect(() => {
     const savedConfig = getCognitoConfig();
     if (savedConfig) {
-      setConfig(savedConfig);
+      setConfig({
+        region: savedConfig.region,
+        userPoolId: savedConfig.userPoolId,
+        userPoolWebClientId: savedConfig.userPoolWebClientId,
+        apiGatewayUrl: savedConfig.apiGatewayUrl || ''
+      });
       setHasConfig(true);
     }
   }, []);
@@ -35,7 +39,13 @@ export const CognitoSettingsTab = () => {
 
     setIsLoading(true);
     try {
-      saveCognitoConfig(config);
+      const configToSave = {
+        region: config.region,
+        userPoolId: config.userPoolId,
+        userPoolWebClientId: config.userPoolWebClientId,
+        ...(config.apiGatewayUrl && { apiGatewayUrl: config.apiGatewayUrl })
+      };
+      saveCognitoConfig(configToSave);
       setHasConfig(true);
       toast.success('Cognito configuration saved successfully');
     } catch (error) {
