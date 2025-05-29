@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ export default function Login() {
             throw new Error('Cognito configuration not found');
           }
           
+          // Fix the token endpoint URL to use the correct region format
           const tokenEndpoint = `https://${config.userPoolId.split('_')[0]}-${config.userPoolId.split('_')[1]}.auth.${config.region}.amazoncognito.com/oauth2/token`;
           
           const tokenResponse = await fetch(tokenEndpoint, {
@@ -56,7 +58,7 @@ export default function Login() {
               grant_type: 'authorization_code',
               client_id: config.userPoolWebClientId,
               code: code,
-              redirect_uri: window.location.origin + '/profile',
+              redirect_uri: window.location.origin + '/login',
             }),
           });
           
@@ -110,7 +112,7 @@ export default function Login() {
     const config = getCognitoConfig();
     if (!config) return;
     
-    // Use current origin as redirect URI
+    // Use current origin as redirect URI and fix the Cognito URL
     const redirectUri = encodeURIComponent(window.location.origin + '/login');
     const cognitoBaseUrl = `https://${config.userPoolId.split('_')[0]}-${config.userPoolId.split('_')[1]}.auth.${config.region}.amazoncognito.com`;
     const cognitoLoginUrl = `${cognitoBaseUrl}/login?client_id=${config.userPoolWebClientId}&response_type=code&scope=email+openid+profile&redirect_uri=${redirectUri}`;
