@@ -12,9 +12,12 @@ export const configureCognito = (config: CognitoConfig) => {
   Amplify.configure({
     Auth: {
       Cognito: {
-        region: config.region,
         userPoolId: config.userPoolId,
         userPoolClientId: config.userPoolWebClientId,
+        loginWith: {
+          email: true,
+          username: true
+        }
       }
     },
     API: config.apiGatewayUrl ? {

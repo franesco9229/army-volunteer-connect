@@ -27,21 +27,64 @@ interface SignUpCredentials {
 import { signIn, signUp, signOut, getCurrentUser, fetchAuthSession, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
 import { getCognitoConfig } from './cognitoConfig';
 
+// Mock users for demo purposes
+const MOCK_USERS = [
+  {
+    username: 'demo@example.com',
+    password: 'demo123',
+    user: {
+      id: 'mock-user-1',
+      username: 'demo@example.com',
+      email: 'demo@example.com',
+      name: 'Demo User',
+      groups: ['users'],
+      isAdmin: false
+    }
+  },
+  {
+    username: 'admin@example.com',
+    password: 'admin123',
+    user: {
+      id: 'mock-admin-1',
+      username: 'admin@example.com',
+      email: 'admin@example.com',
+      name: 'Admin User',
+      groups: ['admins'],
+      isAdmin: true
+    }
+  }
+];
+
 export const Auth = {
   // Current authenticated user
   currentUser: null as AuthUser | null,
   currentSession: null as string | null,
   
-  // Sign in with username/email and password using AWS Cognito
+  // Sign in with username/email and password using AWS Cognito or Mock
   signIn: async (credentials: SignInCredentials): Promise<AuthUser> => {
-    console.log("Signing in with AWS Cognito:", credentials);
+    console.log("Attempting sign in:", credentials);
     
-    try {
-      const config = getCognitoConfig();
-      if (!config) {
-        throw new Error('Cognito not configured. Please configure in Settings > API.');
+    const config = getCognitoConfig();
+    
+    // If no Cognito config, use mock authentication
+    if (!config) {
+      console.log("No Cognito config found, using mock authentication");
+      const mockUser = MOCK_USERS.find(
+        u => u.username === credentials.username && u.password === credentials.password
+      );
+      
+      if (mockUser) {
+        Auth.currentUser = mockUser.user;
+        Auth.currentSession = 'mock-session-token';
+        localStorage.setItem('mock_auth_user', JSON.stringify(mockUser.user));
+        return mockUser.user;
+      } else {
+        throw new Error("Invalid mock credentials. Try demo@example.com/demo123 or admin@example.com/admin123");
       }
-
+    }
+    
+    // Use real Cognito authentication
+    try {
       const { isSignedIn, nextStep } = await signIn({
         username: credentials.username,
         password: credentials.password,
@@ -73,16 +116,32 @@ export const Auth = {
     }
   },
   
-  // Register a new user with AWS Cognito
+  // Register a new user with AWS Cognito or Mock
   signUp: async (credentials: SignUpCredentials): Promise<AuthUser> => {
-    console.log("Registering with AWS Cognito:", credentials);
+    console.log("Attempting sign up:", credentials);
     
+    const config = getCognitoConfig();
+    
+    // If no Cognito config, use mock authentication
+    if (!config) {
+      console.log("No Cognito config found, using mock sign up");
+      const newUser: AuthUser = {
+        id: `mock-user-${Date.now()}`,
+        username: credentials.username,
+        email: credentials.email,
+        name: credentials.name || credentials.username,
+        groups: ['users'],
+        isAdmin: false
+      };
+      
+      Auth.currentUser = newUser;
+      Auth.currentSession = 'mock-session-token';
+      localStorage.setItem('mock_auth_user', JSON.stringify(newUser));
+      return newUser;
+    }
+    
+    // Use real Cognito sign up
     try {
-      const config = getCognitoConfig();
-      if (!config) {
-        throw new Error('Cognito not configured. Please configure in Settings > API.');
-      }
-
       const { isSignUpComplete, userId, nextStep } = await signUp({
         username: credentials.username,
         password: credentials.password,
@@ -111,9 +170,19 @@ export const Auth = {
     }
   },
   
-  // Sign out current user from Cognito
+  // Sign out current user from Cognito or Mock
   signOut: async (): Promise<void> => {
-    console.log("Signing out from AWS Cognito");
+    console.log("Signing out");
+    
+    const config = getCognitoConfig();
+    
+    if (!config) {
+      // Mock sign out
+      localStorage.removeItem('mock_auth_user');
+      Auth.currentUser = null;
+      Auth.currentSession = null;
+      return;
+    }
     
     try {
       await signOut();
@@ -125,8 +194,16 @@ export const Auth = {
     }
   },
   
-  // Check if user is authenticated with Cognito
+  // Check if user is authenticated with Cognito or Mock
   isAuthenticated: async (): Promise<boolean> => {
+    const config = getCognitoConfig();
+    
+    if (!config) {
+      // Check mock authentication
+      const mockUser = localStorage.getItem('mock_auth_user');
+      return !!mockUser;
+    }
+    
     try {
       const currentUser = await getCurrentUser();
       return !!currentUser;
@@ -135,8 +212,22 @@ export const Auth = {
     }
   },
   
-  // Get current authenticated user from Cognito
+  // Get current authenticated user from Cognito or Mock
   getCurrentUser: async (): Promise<AuthUser | null> => {
+    const config = getCognitoConfig();
+    
+    if (!config) {
+      // Get mock user
+      const mockUserData = localStorage.getItem('mock_auth_user');
+      if (mockUserData) {
+        const user = JSON.parse(mockUserData);
+        Auth.currentUser = user;
+        Auth.currentSession = 'mock-session-token';
+        return user;
+      }
+      return null;
+    }
+    
     try {
       const currentUser = await getCurrentUser();
       const session = await fetchAuthSession();
