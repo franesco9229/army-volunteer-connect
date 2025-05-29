@@ -46,10 +46,13 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
       console.log('📧 Email being verified:', email);
       
       const cleanCode = verificationCode.trim();
-      const usernameForVerification = email; // Always use email as username
+      
+      // Get the stored username from signup
+      const storedUsername = localStorage.getItem('temp_cognito_username');
+      const usernameForVerification = storedUsername || username || email;
       
       console.log('🚀 Calling confirmSignUp with:');
-      console.log('   username (email):', usernameForVerification);
+      console.log('   username:', usernameForVerification);
       console.log('   confirmationCode:', cleanCode);
       
       await confirmSignUp({
@@ -58,6 +61,11 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
       });
       
       console.log('✅ Verification successful!');
+      
+      // Clean up temporary storage
+      localStorage.removeItem('temp_cognito_username');
+      localStorage.removeItem('temp_cognito_email');
+      
       toast.success('Email verified successfully!');
       onVerificationComplete();
     } catch (error) {
@@ -99,9 +107,14 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
     try {
       console.log('📬 Resending verification code for email:', email);
       
-      // Always use email as username
+      // Get the stored username from signup
+      const storedUsername = localStorage.getItem('temp_cognito_username');
+      const usernameForResend = storedUsername || username || email;
+      
+      console.log('🚀 Resending with username:', usernameForResend);
+      
       await resendSignUpCode({
-        username: email
+        username: usernameForResend
       });
       
       console.log('✅ Code resent successfully');

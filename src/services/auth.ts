@@ -185,15 +185,17 @@ export const Auth = {
         userPoolWebClientId: config.userPoolWebClientId
       });
       
-      // Use email as username since email alias is configured
+      // Generate a unique username to avoid email format restriction
+      const uniqueUsername = `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      
       console.log("📝 Signup parameters:", {
-        username: credentials.email, // Use email directly as username
+        username: uniqueUsername, // Use generated username
         email: credentials.email,
         name: credentials.name || credentials.username.split('@')[0] || 'Demo User'
       });
 
       const { isSignUpComplete, userId, nextStep } = await signUp({
-        username: credentials.email, // Use email as username
+        username: uniqueUsername, // Use generated username instead of email
         password: credentials.password,
         options: {
           userAttributes: {
@@ -207,16 +209,21 @@ export const Auth = {
       console.log("✅ Signup request completed successfully:", {
         isSignUpComplete,
         userId,
-        nextStep: nextStep?.signUpStep
+        nextStep: nextStep?.signUpStep,
+        generatedUsername: uniqueUsername
       });
 
       if (isSignUpComplete) {
         // Auto sign in after successful signup
         return await Auth.signIn({
-          username: credentials.email,
+          username: credentials.email, // Use email for sign in (alias)
           password: credentials.password
         });
       } else {
+        // Store the generated username for verification
+        localStorage.setItem('temp_cognito_username', uniqueUsername);
+        localStorage.setItem('temp_cognito_email', credentials.email);
+        
         // Handle confirmation required
         throw new Error(`Registration requires confirmation. Next step: ${nextStep.signUpStep}`);
       }
@@ -229,49 +236,6 @@ export const Auth = {
         console.error("   Message:", error.message);
         console.error("   Name:", error.name);
         console.error("   Stack:", error.stack);
-        
-        // Log the raw error object for inspection
-        console.error("🔍 Raw Error Object:", error);
-        console.error("🔍 Error Constructor:", error.constructor.name);
-        console.error("🔍 Error Prototype:", Object.getPrototypeOf(error));
-        
-        // Check if error has additional properties
-        const errorKeys = Object.getOwnPropertyNames(error);
-        console.error("🔍 Error Properties:", errorKeys);
-        errorKeys.forEach(key => {
-          if (key !== 'message' && key !== 'name' && key !== 'stack') {
-            console.error(`   ${key}:`, (error as any)[key]);
-          }
-        });
-        
-        // Detailed network error analysis
-        if (error.message.includes('network error') || error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
-          console.error("🌐 NETWORK ERROR DETECTED - Detailed Analysis:");
-          console.error("   → This means the request never reached AWS Cognito");
-          console.error("   → Browser is blocking the request before it leaves");
-          console.error("");
-          console.error("🔧 Possible Causes & Solutions:");
-          console.error("   1. CORS Issues:");
-          console.error("      → Check browser's Network tab for CORS errors");
-          console.error("      → Look for 'Access-Control-Allow-Origin' errors");
-          console.error("   2. DNS Resolution:");
-          console.error("      → Try accessing AWS Cognito directly in browser");
-          console.error("      → Test: https://cognito-idp." + config.region + ".amazonaws.com/");
-          console.error("   3. Firewall/Proxy:");
-          console.error("      → Corporate firewall blocking AWS domains");
-          console.error("      → VPN interfering with AWS connections");
-          console.error("   4. Browser Issues:");
-          console.error("      → Try in incognito/private mode");
-          console.error("      → Clear browser cache and cookies");
-          console.error("   5. AWS Region Issues:");
-          console.error("      → Verify region '" + config.region + "' is correct");
-          console.error("      → Some regions have different endpoints");
-          console.error("");
-          console.error("🧪 Quick Tests:");
-          console.error("   → Open browser Network tab and retry signup");
-          console.error("   → Look for red/failed requests to amazonaws.com");
-          console.error("   → Check if any requests are made at all");
-        }
         
         // Check for specific Cognito errors
         if (error.message.includes('SECRET_HASH')) {
