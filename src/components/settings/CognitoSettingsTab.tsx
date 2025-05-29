@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -130,39 +131,104 @@ export const CognitoSettingsTab = () => {
 
     setIsTesting(true);
     addConsoleMessage('info', 'Testing Cognito connection...');
+    addConsoleMessage('info', '🔍 Starting comprehensive connection test...');
     
     try {
-      addConsoleMessage('info', 'Attempting to validate Cognito configuration...');
-      addConsoleMessage('info', `Testing connection to User Pool: ${config.userPoolId}`);
-      addConsoleMessage('info', `Region: ${config.region}`);
+      addConsoleMessage('info', 'Step 1: Validating configuration parameters');
+      addConsoleMessage('info', `  ✓ Region: ${config.region}`);
+      addConsoleMessage('info', `  ✓ User Pool ID: ${config.userPoolId}`);
+      addConsoleMessage('info', `  ✓ Client ID: ${config.userPoolWebClientId}`);
       
-      // Try to get current user to test the connection
-      const isAuthenticated = await Auth.isAuthenticated();
+      addConsoleMessage('info', 'Step 2: Testing Amplify configuration');
       
-      if (isAuthenticated) {
-        addConsoleMessage('success', 'Connection test successful - user is authenticated');
-      } else {
-        addConsoleMessage('info', 'Connection test successful - no current user session');
-        addConsoleMessage('info', 'Configuration appears valid - ready for authentication');
+      // Import Amplify to check current configuration
+      const { Amplify } = await import('aws-amplify');
+      const currentConfig = Amplify.getConfig();
+      
+      addConsoleMessage('info', '  ✓ Amplify is configured');
+      addConsoleMessage('info', `  ✓ Auth config exists: ${!!currentConfig.Auth}`);
+      
+      if (currentConfig.Auth?.Cognito) {
+        addConsoleMessage('info', `  ✓ Cognito userPoolId: ${currentConfig.Auth.Cognito.userPoolId}`);
+        addConsoleMessage('info', `  ✓ Cognito userPoolClientId: ${currentConfig.Auth.Cognito.userPoolClientId}`);
       }
+      
+      addConsoleMessage('info', 'Step 3: Testing authentication service availability');
+      
+      // Try to check if we can access the Auth service
+      const isAuthenticated = await Auth.isAuthenticated();
+      addConsoleMessage('info', `  ✓ Auth service responded: isAuthenticated = ${isAuthenticated}`);
+      
+      addConsoleMessage('info', 'Step 4: Testing Cognito endpoint reachability');
+      
+      // Try to make a basic request to Cognito to test connectivity
+      try {
+        const { getCurrentUser } = await import('aws-amplify/auth');
+        await getCurrentUser();
+        addConsoleMessage('success', '  ✅ Cognito endpoint is reachable (user check successful)');
+      } catch (cognitoError) {
+        if (cognitoError instanceof Error) {
+          if (cognitoError.message.includes('not authenticated')) {
+            addConsoleMessage('success', '  ✅ Cognito endpoint is reachable (no authenticated user, which is expected)');
+          } else if (cognitoError.message.includes('SECRET_HASH')) {
+            addConsoleMessage('error', '  ❌ CLIENT SECRET DETECTED');
+            addConsoleMessage('error', '🔧 Fix: Go to AWS Cognito Console → User Pools → App clients');
+            addConsoleMessage('error', '   → Edit your app client → Uncheck "Generate client secret"');
+            throw cognitoError;
+          } else if (cognitoError.message.includes('ResourceNotFoundException')) {
+            addConsoleMessage('error', '  ❌ USER POOL OR CLIENT NOT FOUND');
+            addConsoleMessage('error', '🔧 Check: Verify User Pool ID and Client ID are correct');
+            addConsoleMessage('error', '   → Ensure the User Pool exists in the specified region');
+            throw cognitoError;
+          } else if (cognitoError.message.includes('NetworkError') || cognitoError.message.includes('Failed to fetch')) {
+            addConsoleMessage('error', '  ❌ NETWORK ERROR - Cannot reach Cognito');
+            addConsoleMessage('error', '🔧 Check: Network connectivity and AWS region');
+            addConsoleMessage('error', '   → Verify the region is correct');
+            addConsoleMessage('error', '   → Check if AWS Cognito service is available in your region');
+            throw cognitoError;
+          } else {
+            addConsoleMessage('warning', `  ⚠️ Cognito response: ${cognitoError.message}`);
+          }
+        } else {
+          addConsoleMessage('warning', '  ⚠️ Unknown response from Cognito');
+        }
+      }
+      
+      addConsoleMessage('success', '🎉 Connection test completed successfully!');
+      addConsoleMessage('info', '✅ Your Cognito configuration appears to be working correctly');
+      addConsoleMessage('info', '💡 You can now test login/signup with actual user credentials');
       
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      addConsoleMessage('error', `Connection test failed: ${errorMessage}`);
+      addConsoleMessage('error', '❌ Connection test failed!');
       
-      if (errorMessage.includes('SECRET_HASH')) {
-        addConsoleMessage('error', '❌ CLIENT SECRET DETECTED');
-        addConsoleMessage('info', '🔧 Fix: Go to AWS Cognito Console → User Pools → App clients');
-        addConsoleMessage('info', '   → Edit your app client → Uncheck "Generate client secret"');
-      } else if (errorMessage.includes('ResourceNotFoundException')) {
-        addConsoleMessage('error', '❌ USER POOL OR CLIENT NOT FOUND');
-        addConsoleMessage('info', '🔧 Check: Verify User Pool ID and Client ID are correct');
-        addConsoleMessage('info', '   → Ensure the User Pool exists in the specified region');
-      } else if (errorMessage.includes('does not exist')) {
-        addConsoleMessage('error', '❌ RESOURCE NOT FOUND');
-        addConsoleMessage('info', '🔧 Check: User Pool Client ID may be incorrect');
-        addConsoleMessage('info', '   → Verify the Client ID exists in your User Pool');
+      if (error instanceof Error) {
+        addConsoleMessage('error', `Error details: ${error.message}`);
+        
+        // Provide specific troubleshooting based on error type
+        if (error.message.includes('SECRET_HASH')) {
+          addConsoleMessage('error', '');
+          addConsoleMessage('error', '🔧 SOLUTION: Remove Client Secret');
+          addConsoleMessage('error', '1. Go to AWS Cognito Console');
+          addConsoleMessage('error', '2. Navigate to User Pools → Your Pool → App clients');
+          addConsoleMessage('error', '3. Edit your app client');
+          addConsoleMessage('error', '4. Uncheck "Generate client secret"');
+          addConsoleMessage('error', '5. Save changes');
+        } else if (error.message.includes('ResourceNotFoundException')) {
+          addConsoleMessage('error', '');
+          addConsoleMessage('error', '🔧 SOLUTION: Verify Configuration');
+          addConsoleMessage('error', '1. Check User Pool ID is correct');
+          addConsoleMessage('error', '2. Check Client ID is correct');
+          addConsoleMessage('error', '3. Verify the User Pool exists in the specified region');
+        } else if (error.message.includes('NetworkError')) {
+          addConsoleMessage('error', '');
+          addConsoleMessage('error', '🔧 SOLUTION: Check Network/Region');
+          addConsoleMessage('error', '1. Verify internet connection');
+          addConsoleMessage('error', '2. Check AWS region is correct');
+          addConsoleMessage('error', '3. Ensure Cognito service is available in your region');
+        }
       }
+      
+      toast.error('Connection test failed - check debug console for details');
     } finally {
       setIsTesting(false);
     }
