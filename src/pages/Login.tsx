@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader, Lock, Mail, ArrowLeft, User, ExternalLink } from 'lucide-react';
+import { Loader, Lock, Mail, ArrowLeft, User } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { getCognitoConfig } from '@/services/cognitoConfig';
 
@@ -21,105 +21,12 @@ export default function Login() {
   const from = location.state?.from || '/profile';
   const hasCognitoConfig = !!getCognitoConfig();
 
-  // Handle authorization code callback from Cognito
-  useEffect(() => {
-    const handleCognitoCallback = async () => {
-      const urlParams = new URLSearchParams(location.search);
-      const code = urlParams.get('code');
-      const error = urlParams.get('error');
-      
-      if (error) {
-        console.error('Cognito authentication error:', error);
-        const errorDescription = urlParams.get('error_description');
-        toast.error(`Authentication failed: ${errorDescription || error}`);
-        return;
-      }
-      
-      if (code) {
-        console.log('Authorization code received:', code);
-        setIsLoading(true);
-        
-        try {
-          // Exchange authorization code for tokens
-          const config = getCognitoConfig();
-          if (!config) {
-            throw new Error('Cognito configuration not found');
-          }
-          
-          // Fix the token endpoint URL to use the correct region format
-          const tokenEndpoint = `https://${config.userPoolId.split('_')[0]}-${config.userPoolId.split('_')[1]}.auth.${config.region}.amazoncognito.com/oauth2/token`;
-          
-          const tokenResponse = await fetch(tokenEndpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              grant_type: 'authorization_code',
-              client_id: config.userPoolWebClientId,
-              code: code,
-              redirect_uri: window.location.origin + '/login',
-            }),
-          });
-          
-          if (!tokenResponse.ok) {
-            throw new Error(`Token exchange failed: ${tokenResponse.status}`);
-          }
-          
-          const tokens = await tokenResponse.json();
-          console.log('Tokens received successfully');
-          
-          // Decode the ID token to get user info
-          const idTokenPayload = JSON.parse(atob(tokens.id_token.split('.')[1]));
-          
-          // Create user object from token payload
-          const user = {
-            id: idTokenPayload.sub,
-            username: idTokenPayload.email || idTokenPayload['cognito:username'],
-            email: idTokenPayload.email,
-            name: idTokenPayload.name || idTokenPayload.given_name || idTokenPayload.email?.split('@')[0],
-            groups: idTokenPayload['cognito:groups'] || [],
-            isAdmin: (idTokenPayload['cognito:groups'] || []).includes('admins')
-          };
-          
-          // Store tokens securely (you might want to use a more secure method)
-          localStorage.setItem('cognito_tokens', JSON.stringify(tokens));
-          localStorage.setItem('cognito_user', JSON.stringify(user));
-          
-          toast.success("Successfully logged in!");
-          navigate(from, { replace: true });
-          
-        } catch (error) {
-          console.error('Token exchange failed:', error);
-          toast.error("Authentication failed. Please try again.");
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    handleCognitoCallback();
-  }, [location.search, navigate, from]);
-
   // Show error message if redirected from signup
   useEffect(() => {
     if (location.state?.error && location.state?.fromSignup) {
       toast.error(location.state.error);
     }
   }, [location.state]);
-
-  const handleCognitoLogin = () => {
-    const config = getCognitoConfig();
-    if (!config) return;
-    
-    // Use current origin as redirect URI and fix the Cognito URL
-    const redirectUri = encodeURIComponent(window.location.origin + '/login');
-    const cognitoBaseUrl = `https://${config.userPoolId.split('_')[0]}-${config.userPoolId.split('_')[1]}.auth.${config.region}.amazoncognito.com`;
-    const cognitoLoginUrl = `${cognitoBaseUrl}/login?client_id=${config.userPoolWebClientId}&response_type=code&scope=email+openid+profile&redirect_uri=${redirectUri}`;
-    
-    console.log('Redirecting to Cognito hosted UI:', cognitoLoginUrl);
-    window.location.href = cognitoLoginUrl;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,125 +82,86 @@ export default function Login() {
             <p className="text-gray-500 dark:text-gray-400 mt-2">Log in to continue your volunteering journey</p>
           </div>
 
-          {hasCognitoConfig ? (
-            // Cognito Hosted UI Option
-            <div className="space-y-6">
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                <p className="text-sm text-green-800 dark:text-green-200">
-                  <strong>AWS Cognito Configured:</strong> Use the secure hosted login page.
-                </p>
-              </div>
-              
-              <Button 
-                onClick={handleCognitoLogin}
-                className="w-full bg-sta-purple hover:bg-sta-purple/90"
-                disabled={isLoading}
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Login with AWS Cognito
-              </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">Or use demo mode</span>
-                </div>
-              </div>
-              
-              <Button 
-                onClick={handleMockLogin}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full border-sta-purple text-sta-purple hover:bg-sta-purple hover:text-white"
-              >
-                <User className="mr-2 h-4 w-4" />
-                {isLoading ? 'Logging in...' : 'Try Demo Mode'}
-              </Button>
+          {!hasCognitoConfig && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Demo Mode:</strong> No AWS Cognito configured. You can enter any email/password or use the demo button below.
+              </p>
             </div>
-          ) : (
-            // Demo Mode Form
-            <>
-              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  <strong>Demo Mode:</strong> No AWS Cognito configured. You can enter any email/password or use the demo button below.
-                </p>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input 
-                      id="email" 
-                      type="email" 
-                      placeholder="you@example.com" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <Link to="/forgot-password" className="text-sm text-sta-purple hover:underline">
-                      Forgot password?
-                    </Link>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input 
-                      id="password" 
-                      type="password" 
-                      placeholder="••••••••" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-sta-purple hover:bg-sta-purple/90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader className="mr-2 h-4 w-4 animate-spin" />
-                      Signing In...
-                    </>
-                  ) : (
-                    "Sign In"
-                  )}
-                </Button>
-              </form>
-
-              <div className="mt-6">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">Or</span>
-                  </div>
-                </div>
-                <Button 
-                  onClick={handleMockLogin}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full mt-4 border-sta-purple text-sta-purple hover:bg-sta-purple hover:text-white"
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  {isLoading ? 'Logging in...' : 'Try Demo Mode'}
-                </Button>
-              </div>
-            </>
           )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="you@example.com" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-password" className="text-sm text-sta-purple hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input 
+                  id="password" 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            <Button 
+              type="submit" 
+              className="w-full bg-sta-purple hover:bg-sta-purple/90"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
+                  Signing In...
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
+          </form>
+
+          {/* Demo Mode Button - Always visible */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">Or</span>
+              </div>
+            </div>
+            <Button 
+              onClick={handleMockLogin}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full mt-4 border-sta-purple text-sta-purple hover:bg-sta-purple hover:text-white"
+            >
+              <User className="mr-2 h-4 w-4" />
+              {isLoading ? 'Logging in...' : 'Try Demo Mode'}
+            </Button>
+          </div>
           
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-400">
