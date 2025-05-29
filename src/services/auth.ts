@@ -179,10 +179,17 @@ export const Auth = {
     
     // Use real Cognito sign up
     try {
-      console.log("Attempting Cognito sign up with config:", {
+      console.log("🚀 Starting Cognito signup process...");
+      console.log("📋 Configuration being used:", {
         region: config.region,
         userPoolId: config.userPoolId,
         userPoolWebClientId: config.userPoolWebClientId
+      });
+      
+      console.log("📝 Signup parameters:", {
+        username: credentials.username,
+        email: credentials.email,
+        name: credentials.name || credentials.username.split('@')[0] || 'Demo User'
       });
 
       const { isSignUpComplete, userId, nextStep } = await signUp({
@@ -197,6 +204,12 @@ export const Auth = {
         }
       });
 
+      console.log("✅ Signup request completed successfully:", {
+        isSignUpComplete,
+        userId,
+        nextStep: nextStep?.signUpStep
+      });
+
       if (isSignUpComplete) {
         // Auto sign in after successful signup
         return await Auth.signIn({
@@ -208,27 +221,56 @@ export const Auth = {
         throw new Error(`Registration requires confirmation. Next step: ${nextStep.signUpStep}`);
       }
     } catch (error) {
-      console.error("Cognito sign up failed with detailed error:", error);
+      console.error("❌ Cognito sign up failed with detailed error:", error);
       
       // Enhanced error logging for debugging
       if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Error name:", error.name);
-        console.error("Error stack:", error.stack);
+        console.error("📄 Error Details:");
+        console.error("   Message:", error.message);
+        console.error("   Name:", error.name);
+        console.error("   Stack:", error.stack);
         
-        // Log the full error object for network errors
-        if (error.message.includes('network error') || error.message.includes('Network Error')) {
-          console.error("Full error object:", error);
-          console.error("Error constructor:", error.constructor.name);
-          
-          // Check if it's a fetch error
-          if (error.message.includes('fetch')) {
-            console.error("🔧 CORS/Network Issue Detected:");
-            console.error("   → Check if your User Pool region is correct");
-            console.error("   → Verify the User Pool allows public signup");
-            console.error("   → Check browser network tab for CORS errors");
-            console.error("   → Ensure your User Pool exists and is active");
+        // Log the raw error object for inspection
+        console.error("🔍 Raw Error Object:", error);
+        console.error("🔍 Error Constructor:", error.constructor.name);
+        console.error("🔍 Error Prototype:", Object.getPrototypeOf(error));
+        
+        // Check if error has additional properties
+        const errorKeys = Object.getOwnPropertyNames(error);
+        console.error("🔍 Error Properties:", errorKeys);
+        errorKeys.forEach(key => {
+          if (key !== 'message' && key !== 'name' && key !== 'stack') {
+            console.error(`   ${key}:`, (error as any)[key]);
           }
+        });
+        
+        // Detailed network error analysis
+        if (error.message.includes('network error') || error.message.includes('Network Error') || error.message.includes('Failed to fetch')) {
+          console.error("🌐 NETWORK ERROR DETECTED - Detailed Analysis:");
+          console.error("   → This means the request never reached AWS Cognito");
+          console.error("   → Browser is blocking the request before it leaves");
+          console.error("");
+          console.error("🔧 Possible Causes & Solutions:");
+          console.error("   1. CORS Issues:");
+          console.error("      → Check browser's Network tab for CORS errors");
+          console.error("      → Look for 'Access-Control-Allow-Origin' errors");
+          console.error("   2. DNS Resolution:");
+          console.error("      → Try accessing AWS Cognito directly in browser");
+          console.error("      → Test: https://cognito-idp." + config.region + ".amazonaws.com/");
+          console.error("   3. Firewall/Proxy:");
+          console.error("      → Corporate firewall blocking AWS domains");
+          console.error("      → VPN interfering with AWS connections");
+          console.error("   4. Browser Issues:");
+          console.error("      → Try in incognito/private mode");
+          console.error("      → Clear browser cache and cookies");
+          console.error("   5. AWS Region Issues:");
+          console.error("      → Verify region '" + config.region + "' is correct");
+          console.error("      → Some regions have different endpoints");
+          console.error("");
+          console.error("🧪 Quick Tests:");
+          console.error("   → Open browser Network tab and retry signup");
+          console.error("   → Look for red/failed requests to amazonaws.com");
+          console.error("   → Check if any requests are made at all");
         }
         
         // Check for specific Cognito errors
