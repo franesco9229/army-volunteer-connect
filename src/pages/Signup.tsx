@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader, Lock, Mail, User, ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { getCognitoConfig } from '@/services/cognitoConfig';
+import { EmailVerification } from '@/components/auth/EmailVerification';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -15,6 +16,8 @@ export default function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState('');
   const { signUp } = useAuth();
   const navigate = useNavigate();
   
@@ -32,25 +35,63 @@ export default function Signup() {
 
     try {
       await signUp(email, password, email, name);
-      toast.success("Account created successfully!");
-      navigate('/profile');
+      // If we reach here without error, signup was successful
+      // Check if verification is needed
+      if (hasCognitoConfig) {
+        setPendingEmail(email);
+        setShowVerification(true);
+      } else {
+        toast.success("Account created successfully!");
+        navigate('/profile');
+      }
     } catch (error) {
       console.error(error);
-      // Navigate to login with error message in state
-      navigate('/login', { 
-        state: { 
-          error: "Login is having issues right now, you can try the demo version",
-          fromSignup: true 
-        } 
-      });
+      if (error instanceof Error && error.message.includes('confirmation')) {
+        // Signup succeeded but needs verification
+        setPendingEmail(email);
+        setShowVerification(true);
+        toast.success("Account created! Please verify your email.");
+      } else {
+        // Navigate to login with error message in state
+        navigate('/login', { 
+          state: { 
+            error: "Login is having issues right now, you can try the demo version",
+            fromSignup: true 
+          } 
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleVerificationComplete = () => {
+    toast.success("Email verified successfully!");
+    navigate('/profile');
+  };
+
+  const handleBackToSignup = () => {
+    setShowVerification(false);
+    setPendingEmail('');
+  };
+
   const handleGoBack = () => {
     navigate('/opportunities');
   };
+
+  if (showVerification) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sta-purple-dark to-sta-purple/20 p-4">
+        <div className="w-full max-w-md">
+          <EmailVerification 
+            email={pendingEmail}
+            onVerificationComplete={handleVerificationComplete}
+            onBack={handleBackToSignup}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sta-purple-dark to-sta-purple/20 p-4">
