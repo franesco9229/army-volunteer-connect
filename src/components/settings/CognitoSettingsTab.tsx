@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Shield, Save, Trash2, Info, Terminal, RefreshCw, LogIn, UserPlus } from 'lucide-react';
 import { getCognitoConfig, saveCognitoConfig } from '@/services/cognitoConfig';
 import { toast } from '@/components/ui/sonner';
-import { AuthService } from '@/services/authService';
+import { Auth } from '@/services/auth';
 
 interface ConsoleMessage {
   timestamp: string;
@@ -137,7 +137,7 @@ export const CognitoSettingsTab = () => {
       addConsoleMessage('info', `Region: ${config.region}`);
       
       // Try to get current user to test the connection
-      const isAuthenticated = await AuthService.isAuthenticated();
+      const isAuthenticated = await Auth.isAuthenticated();
       
       if (isAuthenticated) {
         addConsoleMessage('success', 'Connection test successful - user is authenticated');
@@ -178,19 +178,37 @@ export const CognitoSettingsTab = () => {
     addConsoleMessage('info', `Testing login for: ${testEmail}`);
 
     try {
-      await AuthService.signIn(testEmail, testPassword);
+      // Call Auth.signIn directly to get the original error
+      await Auth.signIn({ username: testEmail, password: testPassword });
       addConsoleMessage('success', `✅ Login successful for ${testEmail}`);
       toast.success('Login test successful!');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      addConsoleMessage('error', `❌ Login failed: ${errorMessage}`);
+      addConsoleMessage('error', `❌ Login failed with detailed error:`);
       
-      if (errorMessage.includes('NotAuthorizedException')) {
-        addConsoleMessage('info', '🔧 This usually means incorrect username or password');
-      } else if (errorMessage.includes('UserNotFoundException')) {
-        addConsoleMessage('info', '🔧 User not found - try signing up first');
-      } else if (errorMessage.includes('SECRET_HASH')) {
-        addConsoleMessage('error', '🔧 Client secret detected - disable in Cognito console');
+      if (error instanceof Error) {
+        addConsoleMessage('error', `Error message: ${error.message}`);
+        addConsoleMessage('error', `Error name: ${error.name}`);
+        
+        // Log the full error object for debugging
+        console.error('Full login error object:', error);
+        
+        if (error.message.includes('SECRET_HASH')) {
+          addConsoleMessage('error', '🔧 CLIENT SECRET DETECTED');
+          addConsoleMessage('info', '   → Go to AWS Cognito Console → User Pools → App clients');
+          addConsoleMessage('info', '   → Edit your app client → Uncheck "Generate client secret"');
+        } else if (error.message.includes('NotAuthorizedException')) {
+          addConsoleMessage('info', '🔧 Invalid credentials - check username/password');
+        } else if (error.message.includes('UserNotFoundException')) {
+          addConsoleMessage('info', '🔧 User not found - try signing up first');
+        } else if (error.message.includes('UserNotConfirmedException')) {
+          addConsoleMessage('info', '🔧 User email not verified - check email for verification');
+        } else if (error.message.includes('ResourceNotFoundException')) {
+          addConsoleMessage('error', '🔧 User Pool or Client not found - check configuration');
+        } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+          addConsoleMessage('error', '🔧 Network error - check AWS region and User Pool ID');
+        }
+      } else {
+        addConsoleMessage('error', `Unknown error type: ${typeof error}`);
       }
     } finally {
       setIsTestingAuth(false);
@@ -207,20 +225,44 @@ export const CognitoSettingsTab = () => {
     addConsoleMessage('info', `Testing signup for: ${testEmail}`);
 
     try {
-      await AuthService.signUp(testEmail, testPassword, testEmail, testName);
+      // Call Auth.signUp directly to get the original error
+      await Auth.signUp({
+        username: testEmail,
+        password: testPassword,
+        email: testEmail,
+        name: testName
+      });
       addConsoleMessage('success', `✅ Signup successful for ${testEmail}`);
       addConsoleMessage('info', 'Check your email for verification code if required');
       toast.success('Signup test successful!');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      addConsoleMessage('error', `❌ Signup failed: ${errorMessage}`);
+      addConsoleMessage('error', `❌ Signup failed with detailed error:`);
       
-      if (errorMessage.includes('UsernameExistsException')) {
-        addConsoleMessage('info', '🔧 User already exists - try logging in instead');
-      } else if (errorMessage.includes('InvalidPasswordException')) {
-        addConsoleMessage('info', '🔧 Password does not meet requirements');
-      } else if (errorMessage.includes('SECRET_HASH')) {
-        addConsoleMessage('error', '🔧 Client secret detected - disable in Cognito console');
+      if (error instanceof Error) {
+        addConsoleMessage('error', `Error message: ${error.message}`);
+        addConsoleMessage('error', `Error name: ${error.name}`);
+        
+        // Log the full error object for debugging
+        console.error('Full signup error object:', error);
+        
+        if (error.message.includes('SECRET_HASH')) {
+          addConsoleMessage('error', '🔧 CLIENT SECRET DETECTED');
+          addConsoleMessage('info', '   → Go to AWS Cognito Console → User Pools → App clients');
+          addConsoleMessage('info', '   → Edit your app client → Uncheck "Generate client secret"');
+        } else if (error.message.includes('UsernameExistsException')) {
+          addConsoleMessage('info', '🔧 User already exists - try logging in instead');
+        } else if (error.message.includes('InvalidPasswordException')) {
+          addConsoleMessage('info', '🔧 Password does not meet requirements');
+          addConsoleMessage('info', '   → Check User Pool password policy');
+        } else if (error.message.includes('InvalidParameterException')) {
+          addConsoleMessage('error', '🔧 Invalid parameter - check email format or other inputs');
+        } else if (error.message.includes('ResourceNotFoundException')) {
+          addConsoleMessage('error', '🔧 User Pool or Client not found - check configuration');
+        } else if (error.message.includes('NetworkError') || error.message.includes('Failed to fetch')) {
+          addConsoleMessage('error', '🔧 Network error - check AWS region and User Pool ID');
+        }
+      } else {
+        addConsoleMessage('error', `Unknown error type: ${typeof error}`);
       }
     } finally {
       setIsTestingAuth(false);
