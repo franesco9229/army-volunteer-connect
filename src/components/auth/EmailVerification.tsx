@@ -11,7 +11,7 @@ import { getCognitoConfig } from '@/services/cognitoConfig';
 
 interface EmailVerificationProps {
   email: string;
-  username?: string; // Add username prop for Cognito verification
+  username?: string;
   onVerificationComplete: () => void;
   onBack: () => void;
 }
@@ -32,7 +32,6 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
     // Mock verification if no Cognito config
     if (!hasCognitoConfig) {
       setIsVerifying(true);
-      // Simulate verification delay
       setTimeout(() => {
         setIsVerifying(false);
         toast.success('Email verified successfully! (Demo mode)');
@@ -45,16 +44,12 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
     try {
       console.log('🔍 Starting verification process...');
       console.log('📧 Email being verified:', email);
-      console.log('👤 Username for verification:', username || email);
-      console.log('🔢 Verification code entered:', verificationCode);
       
       const cleanCode = verificationCode.trim();
+      const usernameForVerification = email; // Always use email as username
       
-      // Use username if provided (for Cognito), otherwise use email
-      const usernameForVerification = username || email;
-      
-      console.log('🚀 Calling confirmSignUp with parameters:');
-      console.log('   username:', usernameForVerification);
+      console.log('🚀 Calling confirmSignUp with:');
+      console.log('   username (email):', usernameForVerification);
       console.log('   confirmationCode:', cleanCode);
       
       await confirmSignUp({
@@ -102,10 +97,11 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
 
     setIsResending(true);
     try {
-      console.log('📬 Resending verification code for username:', username || email);
+      console.log('📬 Resending verification code for email:', email);
       
+      // Always use email as username
       await resendSignUpCode({
-        username: username || email
+        username: email
       });
       
       console.log('✅ Code resent successfully');
@@ -119,6 +115,8 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
           toast.error('Too many requests. Please wait before requesting another code.');
         } else if (error.message.includes('UserNotFoundException')) {
           toast.error('User not found. Please try signing up again.');
+        } else if (error.message.includes('InvalidParameterException')) {
+          toast.error('Invalid request. Please try signing up again.');
         } else {
           toast.error('Failed to resend code. Please try again.');
         }
@@ -223,9 +221,6 @@ export function EmailVerification({ email, username, onVerificationComplete, onB
             <>
               <p>Check your spam folder if you don't see the email.</p>
               <p>The code expires in 15 minutes.</p>
-              <p className="mt-2 font-mono text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded">
-                Debug: Verification for {email} {username && `(username: ${username})`}
-              </p>
             </>
           ) : (
             <p>Demo mode: Enter any 6-digit code to continue</p>
