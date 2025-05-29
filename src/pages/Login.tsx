@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader, Lock, Mail, ArrowLeft } from 'lucide-react';
+import { Loader, Lock, Mail, ArrowLeft, User } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { getCognitoConfig } from '@/services/cognitoConfig';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -18,6 +19,7 @@ export default function Login() {
   
   // Get the redirect URL from location state or default to profile
   const from = location.state?.from || '/profile';
+  const hasCognitoConfig = !!getCognitoConfig();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +33,20 @@ export default function Login() {
     } catch (error) {
       console.error(error);
       toast.error("Invalid credentials. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMockLogin = async () => {
+    setIsLoading(true);
+    try {
+      await signIn('demo@example.com', 'demo123');
+      toast.success("Successfully logged in with mock data!");
+      navigate(from, { replace: true });
+    } catch (error) {
+      console.error(error);
+      toast.error("Mock login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -57,6 +73,23 @@ export default function Login() {
             <h1 className="text-3xl font-bold text-sta-purple">Welcome Back</h1>
             <p className="text-gray-500 dark:text-gray-400 mt-2">Log in to continue your volunteering journey</p>
           </div>
+
+          {!hasCognitoConfig && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
+                <strong>Demo Mode:</strong> No AWS Cognito configured. Try the mock login or enter any email/password.
+              </p>
+              <Button 
+                onClick={handleMockLogin}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-800"
+              >
+                <User className="mr-2 h-4 w-4" />
+                {isLoading ? 'Logging in...' : 'Try Mock Login'}
+              </Button>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
