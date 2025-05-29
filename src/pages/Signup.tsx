@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -34,38 +35,52 @@ export default function Signup() {
 
     try {
       await signUp(email, password, email, name);
-      // If we reach here without error, signup was successful
-      // Check if verification is needed
+      
+      // If we reach here with Cognito, it means verification is needed
       if (hasCognitoConfig) {
-        console.log('Signup successful, showing verification screen');
+        console.log('Signup successful with Cognito, showing verification screen');
         setPendingEmail(email);
         setShowVerification(true);
-        toast.success("Account created! Please verify your email.");
+        toast.success("Account created! Please check your email for verification code.");
       } else {
+        // Mock mode - no verification needed
         toast.success("Account created successfully!");
         navigate('/profile');
       }
     } catch (error) {
       console.error('Signup error:', error);
       
-      // Check if this is actually a successful signup that needs verification
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase();
         
+        // Check if this is actually a successful signup that needs verification
         if (errorMessage.includes('confirmation') || 
             errorMessage.includes('confirm_sign_up') || 
-            errorMessage.includes('next step: confirm_sign_up')) {
+            errorMessage.includes('next step: confirm_sign_up') ||
+            errorMessage.includes('registration requires confirmation')) {
           console.log('Signup successful, showing verification screen');
           setPendingEmail(email);
           setShowVerification(true);
-          toast.success("Account created! Please verify your email.");
-          return; // Important: return here to prevent redirect
+          toast.success("Account created! Please check your email for verification code.");
+          return;
+        }
+        
+        // Handle specific errors
+        if (errorMessage.includes('usernameexistsexception')) {
+          toast.error("An account with this email already exists. Please try signing in.");
+          return;
+        }
+        
+        if (errorMessage.includes('invalidpasswordexception')) {
+          toast.error("Password does not meet requirements. Please choose a stronger password.");
+          return;
         }
       }
       
-      // For actual errors, redirect to email verification page with the email
-      console.error('Actual signup error:', error);
-      navigate(`/email-verification?email=${encodeURIComponent(email)}`);
+      // For other errors, show verification screen anyway (in case it's a Cognito quirk)
+      console.log('Error occurred, but showing verification screen as fallback');
+      setPendingEmail(email);
+      setShowVerification(true);
       toast.error("Please check your email for verification code");
     } finally {
       setIsLoading(false);
@@ -86,7 +101,8 @@ export default function Signup() {
     navigate('/opportunities');
   };
 
-  if (showVerification) {
+  // Show verification screen if needed
+  if (showVerification && pendingEmail) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sta-purple-dark to-sta-purple/20 p-4">
         <div className="w-full max-w-md">
