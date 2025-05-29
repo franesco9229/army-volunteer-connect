@@ -5,17 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader, User, Mail, Lock } from 'lucide-react';
+import { Loader, Lock, Mail, User, ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { getCognitoConfig } from '@/services/cognitoConfig';
 
 export default function Signup() {
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  
+  const hasCognitoConfig = !!getCognitoConfig();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,30 +27,54 @@ export default function Signup() {
       toast.error("Passwords don't match");
       return;
     }
-    
+
     setIsLoading(true);
 
     try {
-      // For demo: Use email as username
       await signUp(email, password, email, name);
-      toast.success("Account created! You're now logged in.");
-      navigate('/opportunities', { replace: true });
+      toast.success("Account created successfully!");
+      navigate('/profile');
     } catch (error) {
       console.error(error);
-      toast.error("Failed to create account. Please try again.");
+      toast.error("Login is having issues right now, you can try the demo version");
+      // Redirect to login page where demo button is available
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleGoBack = () => {
+    navigate('/opportunities');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sta-purple-dark to-sta-purple/20 p-4">
       <div className="w-full max-w-md">
+        <Button 
+          variant="ghost" 
+          className="mb-4 text-white hover:text-white hover:bg-sta-purple/30"
+          onClick={handleGoBack}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Opportunities
+        </Button>
+        
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-sta-purple">Join the Community</h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">Create an account to start volunteering</p>
+            <h1 className="text-3xl font-bold text-sta-purple">Create Account</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-2">Join our volunteering community</p>
           </div>
+
+          {!hasCognitoConfig && (
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Demo Mode:</strong> No AWS Cognito configured. You can enter any details to create a mock account.
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -65,7 +92,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-            
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
@@ -81,7 +107,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-            
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
@@ -97,7 +122,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-            
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
@@ -113,7 +137,6 @@ export default function Signup() {
                 />
               </div>
             </div>
-            
             <Button 
               type="submit" 
               className="w-full bg-sta-purple hover:bg-sta-purple/90"
