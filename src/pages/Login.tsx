@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -76,18 +75,9 @@ export default function Login() {
 
           {!hasCognitoConfig && (
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-blue-800 dark:text-blue-200 mb-3">
-                <strong>Demo Mode:</strong> No AWS Cognito configured. Try the mock login or enter any email/password.
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                <strong>Demo Mode:</strong> No AWS Cognito configured. You can enter any email/password or use the demo button below.
               </p>
-              <Button 
-                onClick={handleMockLogin}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full border-blue-300 text-blue-700 hover:bg-blue-100 dark:border-blue-600 dark:text-blue-300 dark:hover:bg-blue-800"
-              >
-                <User className="mr-2 h-4 w-4" />
-                {isLoading ? 'Logging in...' : 'Try Mock Login'}
-              </Button>
             </div>
           )}
 
@@ -142,6 +132,27 @@ export default function Login() {
               )}
             </Button>
           </form>
+
+          {/* Demo Mode Button - Always visible */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">Or</span>
+              </div>
+            </div>
+            <Button 
+              onClick={handleMockLogin}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full mt-4 border-sta-purple text-sta-purple hover:bg-sta-purple hover:text-white"
+            >
+              <User className="mr-2 h-4 w-4" />
+              {isLoading ? 'Logging in...' : 'Try Demo Mode'}
+            </Button>
+          </div>
           
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-400">
