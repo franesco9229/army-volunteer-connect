@@ -36,11 +36,13 @@ export default function Signup() {
       navigate('/profile');
     } catch (error) {
       console.error(error);
-      toast.error("Login is having issues right now, you can try the demo version");
-      // Redirect to login page where demo button is available
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      // Navigate to login with error message in state
+      navigate('/login', { 
+        state: { 
+          error: "Login is having issues right now, you can try the demo version",
+          fromSignup: true 
+        } 
+      });
     } finally {
       setIsLoading(false);
     }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,13 @@ export default function Login() {
   // Get the redirect URL from location state or default to profile
   const from = location.state?.from || '/profile';
   const hasCognitoConfig = !!getCognitoConfig();
+
+  // Show error message if redirected from signup
+  useEffect(() => {
+    if (location.state?.error && location.state?.fromSignup) {
+      toast.error(location.state.error);
+    }
+  }, [location.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
