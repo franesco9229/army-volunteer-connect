@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -62,6 +61,13 @@ export default function Login() {
 
   const handleGoBack = () => {
     navigate('/opportunities');
+  };
+
+  const handleEmailVerification = () => {
+    const email = window.prompt('Please enter your email address for verification:');
+    if (email && email.trim()) {
+      navigate(`/email-verification?email=${encodeURIComponent(email.trim())}`);
+    }
   };
 
   return (
@@ -160,6 +166,17 @@ export default function Login() {
             >
               <User className="mr-2 h-4 w-4" />
               {isLoading ? 'Logging in...' : 'Try Demo Mode'}
+            </Button>
+          </div>
+
+          {/* Email Verification Link */}
+          <div className="mt-4 text-center">
+            <Button 
+              variant="link" 
+              onClick={handleEmailVerification}
+              className="text-sta-purple hover:underline text-sm"
+            >
+              Need to verify your email?
             </Button>
           </div>
           

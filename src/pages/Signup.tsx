@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,8 +37,10 @@ export default function Signup() {
       // If we reach here without error, signup was successful
       // Check if verification is needed
       if (hasCognitoConfig) {
+        console.log('Signup successful, showing verification screen');
         setPendingEmail(email);
         setShowVerification(true);
+        toast.success("Account created! Please verify your email.");
       } else {
         toast.success("Account created successfully!");
         navigate('/profile');
@@ -62,14 +63,10 @@ export default function Signup() {
         }
       }
       
-      // Only redirect to login for actual errors
+      // For actual errors, redirect to email verification page with the email
       console.error('Actual signup error:', error);
-      navigate('/login', { 
-        state: { 
-          error: "Login is having issues right now, you can try the demo version",
-          fromSignup: true 
-        } 
-      });
+      navigate(`/email-verification?email=${encodeURIComponent(email)}`);
+      toast.error("Please check your email for verification code");
     } finally {
       setIsLoading(false);
     }
