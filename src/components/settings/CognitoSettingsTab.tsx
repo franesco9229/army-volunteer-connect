@@ -73,11 +73,7 @@ export const CognitoSettingsTab = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>Demo Mode:</strong> No Cognito configuration found. You can use mock authentication:
-            <br />
-            • User: demo@example.com / demo123
-            <br />
-            • Admin: admin@example.com / admin123
+            <strong>Demo Mode:</strong> No Cognito configuration found. You can use mock authentication with any email and password combination to test the app with mock data.
           </AlertDescription>
         </Alert>
       )}

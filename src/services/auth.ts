@@ -69,18 +69,21 @@ export const Auth = {
     // If no Cognito config, use mock authentication
     if (!config) {
       console.log("No Cognito config found, using mock authentication");
-      const mockUser = MOCK_USERS.find(
-        u => u.username === credentials.username && u.password === credentials.password
-      );
       
-      if (mockUser) {
-        Auth.currentUser = mockUser.user;
-        Auth.currentSession = 'mock-session-token';
-        localStorage.setItem('mock_auth_user', JSON.stringify(mockUser.user));
-        return mockUser.user;
-      } else {
-        throw new Error("Invalid mock credentials. Try demo@example.com/demo123 or admin@example.com/admin123");
-      }
+      // Accept any email/password combination for mock login
+      const mockUser: AuthUser = {
+        id: `mock-user-${Date.now()}`,
+        username: credentials.username,
+        email: credentials.username,
+        name: credentials.username.split('@')[0] || 'Demo User',
+        groups: ['users'],
+        isAdmin: false
+      };
+      
+      Auth.currentUser = mockUser;
+      Auth.currentSession = 'mock-session-token';
+      localStorage.setItem('mock_auth_user', JSON.stringify(mockUser));
+      return mockUser;
     }
     
     // Use real Cognito authentication
@@ -129,7 +132,7 @@ export const Auth = {
         id: `mock-user-${Date.now()}`,
         username: credentials.username,
         email: credentials.email,
-        name: credentials.name || credentials.username,
+        name: credentials.name || credentials.username.split('@')[0] || 'Demo User',
         groups: ['users'],
         isAdmin: false
       };
@@ -148,7 +151,7 @@ export const Auth = {
         options: {
           userAttributes: {
             email: credentials.email,
-            name: credentials.name || credentials.username,
+            name: credentials.name || credentials.username.split('@')[0] || 'Demo User',
             ...credentials.attributes
           }
         }
