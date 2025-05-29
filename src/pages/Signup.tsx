@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -47,26 +48,28 @@ export default function Signup() {
       console.error('Signup error:', error);
       
       // Check if this is actually a successful signup that needs verification
-      if (error instanceof Error && error.message.includes('confirmation')) {
-        console.log('Signup successful, showing verification screen');
-        setPendingEmail(email);
-        setShowVerification(true);
-        toast.success("Account created! Please verify your email.");
-      } else if (error instanceof Error && error.message.includes('CONFIRM_SIGN_UP')) {
-        console.log('Signup successful, showing verification screen');
-        setPendingEmail(email);
-        setShowVerification(true);
-        toast.success("Account created! Please verify your email.");
-      } else {
-        // Only redirect to login for actual errors
-        console.error('Actual signup error:', error);
-        navigate('/login', { 
-          state: { 
-            error: "Login is having issues right now, you can try the demo version",
-            fromSignup: true 
-          } 
-        });
+      if (error instanceof Error) {
+        const errorMessage = error.message.toLowerCase();
+        
+        if (errorMessage.includes('confirmation') || 
+            errorMessage.includes('confirm_sign_up') || 
+            errorMessage.includes('next step: confirm_sign_up')) {
+          console.log('Signup successful, showing verification screen');
+          setPendingEmail(email);
+          setShowVerification(true);
+          toast.success("Account created! Please verify your email.");
+          return; // Important: return here to prevent redirect
+        }
       }
+      
+      // Only redirect to login for actual errors
+      console.error('Actual signup error:', error);
+      navigate('/login', { 
+        state: { 
+          error: "Login is having issues right now, you can try the demo version",
+          fromSignup: true 
+        } 
+      });
     } finally {
       setIsLoading(false);
     }
