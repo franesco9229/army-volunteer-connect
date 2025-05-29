@@ -186,14 +186,18 @@ export const Auth = {
         userPoolWebClientId: config.userPoolWebClientId
       });
       
+      // Generate a unique username since email alias is configured
+      // Use a timestamp-based username to avoid conflicts
+      const uniqueUsername = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
       console.log("📝 Signup parameters:", {
-        username: credentials.username,
+        username: uniqueUsername,
         email: credentials.email,
         name: credentials.name || credentials.username.split('@')[0] || 'Demo User'
       });
 
       const { isSignUpComplete, userId, nextStep } = await signUp({
-        username: credentials.username,
+        username: uniqueUsername,
         password: credentials.password,
         options: {
           userAttributes: {
@@ -211,9 +215,9 @@ export const Auth = {
       });
 
       if (isSignUpComplete) {
-        // Auto sign in after successful signup
+        // Auto sign in after successful signup using the email (since it's an alias)
         return await Auth.signIn({
-          username: credentials.username,
+          username: credentials.email, // Use email for sign in since it's an alias
           password: credentials.password
         });
       } else {
