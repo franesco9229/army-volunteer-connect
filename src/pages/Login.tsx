@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Loader, Lock, Mail, ArrowLeft, User } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { getCognitoConfig } from '@/services/cognitoConfig';
-import { Auth } from '@/services/auth';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -42,38 +40,10 @@ export default function Login() {
   const handleMockLogin = async () => {
     setIsLoading(true);
     try {
-      // Temporarily store current config
-      const currentConfig = getCognitoConfig();
-      
-      // Clear config to force mock authentication
-      if (currentConfig) {
-        localStorage.removeItem('cognito_config');
-      }
-      
-      // Use mock authentication
-      const mockUser = {
-        id: `mock-user-${Date.now()}`,
-        username: 'demo@example.com',
-        email: 'demo@example.com',
-        name: 'Demo User',
-        groups: ['users'],
-        isAdmin: false
-      };
-      
-      Auth.currentUser = mockUser;
-      Auth.currentSession = 'mock-session-token';
-      localStorage.setItem('mock_auth_user', JSON.stringify(mockUser));
-      
-      // Restore config if it existed
-      if (currentConfig) {
-        localStorage.setItem('cognito_config', JSON.stringify(currentConfig));
-      }
-      
+      // Use the signIn method with special mock credentials
+      await signIn('MOCK_USER', 'MOCK_PASSWORD');
       toast.success("Successfully logged in with demo data!");
       navigate(from, { replace: true });
-      
-      // Reload to refresh auth context
-      window.location.reload();
     } catch (error) {
       console.error(error);
       toast.error("Demo login failed. Please try again.");
