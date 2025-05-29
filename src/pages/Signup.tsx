@@ -1,56 +1,46 @@
 
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader, Lock, Mail, User, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, UserPlus } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { getCognitoConfig } from '@/services/cognitoConfig';
 
 export default function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
+  const { signUp, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   
   const hasCognitoConfig = !!getCognitoConfig();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (password !== confirmPassword) {
-      toast.error("Passwords don't match");
-      return;
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/profile', { replace: true });
     }
+  }, [isAuthenticated, navigate]);
 
-    setIsLoading(true);
-
+  const handleSignUp = async () => {
     try {
-      await signUp(email, password, email, name);
-      toast.success("Account created successfully!");
-      navigate('/profile');
+      await signUp();
+      // OIDC will handle the redirect to Cognito hosted UI
     } catch (error) {
       console.error(error);
-      // Navigate to login with error message in state
-      navigate('/login', { 
-        state: { 
-          error: "Login is having issues right now, you can try the demo version",
-          fromSignup: true 
-        } 
-      });
-    } finally {
-      setIsLoading(false);
+      toast.error("Authentication failed. Please try again.");
     }
   };
 
   const handleGoBack = () => {
     navigate('/opportunities');
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sta-purple-dark to-sta-purple/20">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-sta-purple-dark to-sta-purple/20 p-4">
@@ -73,98 +63,38 @@ export default function Signup() {
           {!hasCognitoConfig && (
             <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>Demo Mode:</strong> No AWS Cognito configured. You can enter any details to create a mock account.
+                <strong>No Cognito Configuration:</strong> Please configure your AWS Cognito settings in the Settings page to enable authentication.
               </p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input 
-                  id="name" 
-                  type="text" 
-                  placeholder="John Doe" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="you@example.com" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input 
-                  id="confirmPassword" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-sta-purple hover:bg-sta-purple/90"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                "Create Account"
-              )}
-            </Button>
-          </form>
+          <div className="space-y-4">
+            {hasCognitoConfig ? (
+              <Button 
+                onClick={handleSignUp}
+                className="w-full bg-sta-purple hover:bg-sta-purple/90"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Create Account with Cognito
+              </Button>
+            ) : (
+              <Button 
+                disabled
+                variant="outline"
+                className="w-full"
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Configure Cognito to Sign Up
+              </Button>
+            )}
+          </div>
           
           <div className="mt-6 text-center">
             <p className="text-gray-600 dark:text-gray-400">
-              Already have an account?{' '}
-              <Link to="/login" className="text-sta-purple hover:underline">
-                Sign in
-              </Link>
+              Already have an account? The sign up button will redirect you to Cognito where you can choose to sign in instead.
             </p>
           </div>
         </div>
       </div>
     </div>
   );
-}

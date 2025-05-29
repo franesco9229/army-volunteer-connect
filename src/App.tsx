@@ -5,7 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider as OIDCAuthProvider } from 'react-oidc-context';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { getOIDCConfig } from '@/services/oidcConfig';
 import Index from "./pages/Index";
 import Opportunities from "./pages/Opportunities";
 import Applications from "./pages/Applications";
@@ -94,18 +96,36 @@ const AppRoutes = () => {
   );
 };
 
+// OIDC wrapper component
+const OIDCWrapper = ({ children }: { children: React.ReactNode }) => {
+  const oidcConfig = getOIDCConfig();
+
+  if (!oidcConfig) {
+    // Fallback to mock auth when no OIDC config
+    return <>{children}</>;
+  }
+
+  return (
+    <OIDCAuthProvider {...oidcConfig}>
+      {children}
+    </OIDCAuthProvider>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <OIDCWrapper>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </OIDCWrapper>
     </ThemeProvider>
   </QueryClientProvider>
 );
