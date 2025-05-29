@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -31,9 +32,9 @@ export default function Login() {
     const config = getCognitoConfig();
     if (!config) return;
     
-    // Construct Cognito hosted UI URL
-    const cognitoBaseUrl = `https://${config.userPoolId.split('_')[0]}-${config.userPoolId.split('_')[1]}.auth.${config.region}.amazoncognito.com`;
+    // Use current origin as redirect URI
     const redirectUri = encodeURIComponent(window.location.origin + '/profile');
+    const cognitoBaseUrl = `https://${config.userPoolId.split('_')[0]}-${config.userPoolId.split('_')[1]}.auth.${config.region}.amazoncognito.com`;
     const cognitoLoginUrl = `${cognitoBaseUrl}/login?client_id=${config.userPoolWebClientId}&response_type=code&scope=email+openid+profile&redirect_uri=${redirectUri}`;
     
     console.log('Redirecting to Cognito hosted UI:', cognitoLoginUrl);
