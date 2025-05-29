@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -45,14 +44,22 @@ export default function Signup() {
         navigate('/profile');
       }
     } catch (error) {
-      console.error(error);
+      console.error('Signup error:', error);
+      
+      // Check if this is actually a successful signup that needs verification
       if (error instanceof Error && error.message.includes('confirmation')) {
-        // Signup succeeded but needs verification
+        console.log('Signup successful, showing verification screen');
+        setPendingEmail(email);
+        setShowVerification(true);
+        toast.success("Account created! Please verify your email.");
+      } else if (error instanceof Error && error.message.includes('CONFIRM_SIGN_UP')) {
+        console.log('Signup successful, showing verification screen');
         setPendingEmail(email);
         setShowVerification(true);
         toast.success("Account created! Please verify your email.");
       } else {
-        // Navigate to login with error message in state
+        // Only redirect to login for actual errors
+        console.error('Actual signup error:', error);
         navigate('/login', { 
           state: { 
             error: "Login is having issues right now, you can try the demo version",
