@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, LayoutDashboard, User, Briefcase, FileText, Settings, LogOut } from 'lucide-react';
+import { Clock, LayoutDashboard, User, Briefcase, FileText, Settings, LogOut, Database } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -22,6 +22,10 @@ export function AppSidebar() {
     label: "Dashboard",
     icon: LayoutDashboard,
     href: "/"
+  }, {
+    label: "Projects",
+    icon: Database,
+    href: "/projects"
   }, {
     label: "Profile",
     icon: User,

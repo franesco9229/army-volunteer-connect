@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,13 +10,14 @@ import { Loader, Plus, Edit2, Trash2, Database, RefreshCw } from 'lucide-react';
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects';
 import { Project } from '@/services/graphqlService';
 import { toast } from '@/components/ui/sonner';
+import AppLayout from '@/components/layout/AppLayout';
 
 interface ProjectFormData {
   name: string;
   description: string;
 }
 
-export default function Projects() {
+function ProjectsContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [formData, setFormData] = useState<ProjectFormData>({ name: '', description: '' });
@@ -305,5 +305,13 @@ export default function Projects() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function Projects() {
+  return (
+    <AppLayout>
+      <ProjectsContent />
+    </AppLayout>
   );
 }

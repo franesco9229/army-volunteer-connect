@@ -13,6 +13,7 @@ import History from "./pages/History";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
+import Projects from "./pages/Projects";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -63,6 +64,11 @@ const AppRoutes = () => {
     <Routes>
       <Route path="/" element={<DashboardRoute />} />
       <Route path="/opportunities" element={<Opportunities />} />
+      <Route path="/projects" element={
+        <ProtectedRoute>
+          <Projects />
+        </ProtectedRoute>
+      } />
       <Route path="/applications" element={
         <ProtectedRoute>
           <Applications />
