@@ -1,3 +1,4 @@
+
 import { Auth } from './auth';
 
 interface GraphQLRequest {
@@ -91,14 +92,45 @@ export class GraphQLService {
       console.log('GraphQL response received:', {
         hasData: !!result.data,
         hasErrors: !!(result.errors && result.errors.length > 0),
-        errors: result.errors
+        errors: result.errors,
+        fullResponse: result
       });
 
       if (result.errors && result.errors.length > 0) {
-        console.error('GraphQL errors:', result.errors);
+        console.error('GraphQL errors detailed:', result.errors);
         
         // Check for specific error patterns that might indicate resolver issues
         const errorMessages = result.errors.map(err => err.message).join(', ');
+        
+        console.error('RESOLVER DEBUG - Error details:', {
+          errorMessages,
+          errorTypes: result.errors.map(err => err.extensions?.errorType),
+          paths: result.errors.map(err => err.path),
+          fullErrors: result.errors
+        });
+        
+        if (errorMessages.includes('Unsupported element')) {
+          throw new Error(`RESOLVER CONFIGURATION ERROR: Your AppSync resolver is still using VTL syntax instead of JavaScript. 
+            
+The error "${errorMessages}" indicates that your resolver contains VTL template code like $[tableName].
+
+SOLUTION:
+1. Go to your AppSync console
+2. Find the listProjects resolver
+3. Make sure it's set to "JavaScript" runtime (not VTL)
+4. Ensure the request function returns a proper JavaScript object, not VTL syntax
+5. Your request function should look like:
+
+export function request(ctx) {
+    return {
+        "version": "2017-02-28",
+        "operation": "Scan",
+        "tableName": "YourActualTableName"
+    };
+}
+
+The resolver is currently trying to parse VTL syntax which is causing this error.`);
+        }
         
         if (errorMessages.includes('Value for field \'$[operation]\' not found')) {
           throw new Error('GraphQL resolver configuration error: The AppSync resolver appears to be misconfigured. Please check the resolver mapping templates in your AppSync API.');
@@ -117,7 +149,9 @@ export class GraphQLService {
       
       // Provide more specific error messages based on the error type
       if (error instanceof Error) {
-        if (error.message.includes('resolver configuration')) {
+        if (error.message.includes('RESOLVER CONFIGURATION ERROR')) {
+          throw error; // Re-throw resolver config errors as-is with full details
+        } else if (error.message.includes('resolver configuration')) {
           throw error; // Re-throw resolver config errors as-is
         } else if (error.message.includes('Network')) {
           throw new Error('Network error: Unable to connect to the GraphQL API. Please check your internet connection.');
@@ -151,7 +185,9 @@ export class GraphQLService {
       console.error('Failed to list projects:', error);
       
       // Provide user-friendly error message
-      if (error instanceof Error && error.message.includes('resolver configuration')) {
+      if (error instanceof Error && error.message.includes('RESOLVER CONFIGURATION ERROR')) {
+        throw error; // Re-throw with full debugging info
+      } else if (error instanceof Error && error.message.includes('resolver configuration')) {
         throw new Error('GraphQL API configuration error. The backend resolver needs to be fixed by the developer.');
       }
       
