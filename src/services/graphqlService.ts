@@ -20,8 +20,6 @@ interface Project {
   id: string;
   name: string;
   description?: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 interface ListProjectsResponse {
@@ -109,8 +107,6 @@ export class GraphQLService {
           id
           name
           description
-          createdAt
-          updatedAt
         }
       }
     `;
@@ -132,8 +128,6 @@ export class GraphQLService {
           id
           name
           description
-          createdAt
-          updatedAt
         }
       }
     `;
@@ -164,8 +158,6 @@ export class GraphQLService {
           id
           name
           description
-          createdAt
-          updatedAt
         }
       }
     `;
@@ -222,8 +214,6 @@ export class GraphQLService {
           id
           name
           description
-          createdAt
-          updatedAt
         }
       }
     `;

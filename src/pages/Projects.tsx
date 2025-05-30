@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -241,9 +242,6 @@ function ProjectsContent() {
                 </p>
                 <div className="text-xs text-gray-500 dark:text-gray-500">
                   <p>ID: {project.id}</p>
-                  {project.createdAt && (
-                    <p>Created: {new Date(project.createdAt).toLocaleDateString()}</p>
-                  )}
                 </div>
               </CardContent>
             </Card>
