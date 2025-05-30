@@ -1,4 +1,3 @@
-
 import { Auth } from './auth';
 
 interface GraphQLRequest {
@@ -93,6 +92,7 @@ export class GraphQLService {
         hasData: !!result.data,
         hasErrors: !!(result.errors && result.errors.length > 0),
         errors: result.errors,
+        dataContent: result.data,
         fullResponse: result
       });
 
@@ -102,25 +102,34 @@ export class GraphQLService {
         // Check for specific error patterns that might indicate resolver issues
         const errorMessages = result.errors.map(err => err.message).join(', ');
         
-        console.error('RESOLVER DEBUG - Error details:', {
+        console.error('DETAILED RESOLVER DEBUG:', {
           errorMessages,
-          errorTypes: result.errors.map(err => err.extensions?.errorType),
+          errorTypes: result.errors.map(err => err.extensions?.errorType || 'undefined'),
+          errorCodes: result.errors.map(err => err.extensions?.errorCode || 'undefined'),
           paths: result.errors.map(err => err.path),
-          fullErrors: result.errors
+          locations: result.errors.map(err => err.locations),
+          fullErrors: result.errors,
+          rawErrorData: JSON.stringify(result.errors, null, 2)
         });
         
-        if (errorMessages.includes('Unsupported element')) {
-          throw new Error(`RESOLVER CONFIGURATION ERROR: Your AppSync resolver is still using VTL syntax instead of JavaScript. 
-            
-The error "${errorMessages}" indicates that your resolver contains VTL template code like $[tableName].
+        // Check for VTL syntax errors
+        if (errorMessages.includes('Unsupported element') || errorMessages.includes('$[')) {
+          throw new Error(`VTL SYNTAX ERROR DETECTED: Your AppSync resolver contains VTL template syntax.
 
-SOLUTION:
-1. Go to your AppSync console
-2. Find the listProjects resolver
-3. Make sure it's set to "JavaScript" runtime (not VTL)
-4. Ensure the request function returns a proper JavaScript object, not VTL syntax
-5. Your request function should look like:
+ERROR: "${errorMessages}"
 
+This means your resolver is still using VTL syntax like $[operation] or $[tableName] instead of pure JavaScript.
+
+IMMEDIATE STEPS TO FIX:
+1. Go to AWS AppSync Console
+2. Navigate to your API → Schema → Resolvers
+3. Find the "listProjects" resolver on Query type
+4. Click on it to open the resolver editor
+5. Verify the runtime is set to "JavaScript" (not VTL/Apache Velocity)
+6. Make sure the code contains ONLY JavaScript, no VTL syntax like $[...] 
+7. The request function should return a plain JavaScript object
+
+Your request function should look exactly like this:
 export function request(ctx) {
     return {
         "version": "2017-02-28",
@@ -129,10 +138,28 @@ export function request(ctx) {
     };
 }
 
-The resolver is currently trying to parse VTL syntax which is causing this error.`);
+NO VTL syntax like $[operation] or $[tableName] should be present!`);
         }
         
-        if (errorMessages.includes('Value for field \'$[operation]\' not found')) {
+        // Check for field not found errors (indicates VTL parsing issues)
+        if (errorMessages.includes('Value for field') && errorMessages.includes('not found')) {
+          throw new Error(`RESOLVER FIELD ERROR: The error "${errorMessages}" suggests your resolver is trying to parse VTL template variables.
+
+DIAGNOSIS: Your resolver appears to contain VTL syntax like $[operation] which AppSync is trying to process as template variables.
+
+SOLUTION:
+1. Open AWS AppSync Console
+2. Go to your API → Schema → Data Sources
+3. Check that your resolver is attached to the correct DynamoDB data source
+4. Verify the resolver runtime is "JavaScript" not "VTL"
+5. Ensure your resolver code contains NO dollar signs followed by brackets: $[...]
+6. Replace any $[tableName] with the actual table name as a string
+7. Replace any $[operation] with the actual operation like "Scan"
+
+The resolver should return pure JavaScript objects, not VTL templates.`);
+        }
+        
+        if (errorMessages.includes('resolver configuration')) {
           throw new Error('GraphQL resolver configuration error: The AppSync resolver appears to be misconfigured. Please check the resolver mapping templates in your AppSync API.');
         }
         
@@ -149,8 +176,8 @@ The resolver is currently trying to parse VTL syntax which is causing this error
       
       // Provide more specific error messages based on the error type
       if (error instanceof Error) {
-        if (error.message.includes('RESOLVER CONFIGURATION ERROR')) {
-          throw error; // Re-throw resolver config errors as-is with full details
+        if (error.message.includes('VTL SYNTAX ERROR') || error.message.includes('RESOLVER FIELD ERROR')) {
+          throw error; // Re-throw VTL/resolver errors with full debugging info
         } else if (error.message.includes('resolver configuration')) {
           throw error; // Re-throw resolver config errors as-is
         } else if (error.message.includes('Network')) {
@@ -185,7 +212,7 @@ The resolver is currently trying to parse VTL syntax which is causing this error
       console.error('Failed to list projects:', error);
       
       // Provide user-friendly error message
-      if (error instanceof Error && error.message.includes('RESOLVER CONFIGURATION ERROR')) {
+      if (error instanceof Error && (error.message.includes('VTL SYNTAX ERROR') || error.message.includes('RESOLVER FIELD ERROR'))) {
         throw error; // Re-throw with full debugging info
       } else if (error instanceof Error && error.message.includes('resolver configuration')) {
         throw new Error('GraphQL API configuration error. The backend resolver needs to be fixed by the developer.');
