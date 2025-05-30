@@ -1,4 +1,3 @@
-
 import { Auth } from './auth';
 
 interface GraphQLRequest {
@@ -13,6 +12,7 @@ interface GraphQLResponse<T = any> {
     message: string;
     locations?: Array<{ line: number; column: number }>;
     path?: string[];
+    extensions?: any;
   }>;
 }
 
@@ -68,7 +68,8 @@ export class GraphQLService {
       console.log('Making GraphQL request:', {
         endpoint: GraphQLService.APPSYNC_ENDPOINT,
         operation: operationName || 'unknown',
-        variables
+        variables,
+        queryPreview: query.substring(0, 200) + '...'
       });
 
       const response = await fetch(GraphQLService.APPSYNC_ENDPOINT, {
@@ -77,15 +78,33 @@ export class GraphQLService {
         body: JSON.stringify(requestBody)
       });
 
+      console.log('GraphQL response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
 
       const result: GraphQLResponse<T> = await response.json();
+      
+      console.log('GraphQL response received:', {
+        hasData: !!result.data,
+        hasErrors: !!(result.errors && result.errors.length > 0),
+        errors: result.errors
+      });
 
       if (result.errors && result.errors.length > 0) {
         console.error('GraphQL errors:', result.errors);
-        throw new Error(`GraphQL error: ${result.errors[0].message}`);
+        
+        // Check for specific error patterns that might indicate resolver issues
+        const errorMessages = result.errors.map(err => err.message).join(', ');
+        
+        if (errorMessages.includes('Value for field \'$[operation]\' not found')) {
+          throw new Error('GraphQL resolver configuration error: The AppSync resolver appears to be misconfigured. Please check the resolver mapping templates in your AppSync API.');
+        }
+        
+        throw new Error(`GraphQL error: ${errorMessages}`);
       }
 
       if (!result.data) {
@@ -95,6 +114,18 @@ export class GraphQLService {
       return result.data;
     } catch (error) {
       console.error('GraphQL request failed:', error);
+      
+      // Provide more specific error messages based on the error type
+      if (error instanceof Error) {
+        if (error.message.includes('resolver configuration')) {
+          throw error; // Re-throw resolver config errors as-is
+        } else if (error.message.includes('Network')) {
+          throw new Error('Network error: Unable to connect to the GraphQL API. Please check your internet connection.');
+        } else if (error.message.includes('Authentication')) {
+          throw new Error('Authentication error: Please sign in again.');
+        }
+      }
+      
       throw error;
     }
   }
@@ -112,11 +143,19 @@ export class GraphQLService {
     `;
 
     try {
+      console.log('Attempting to list projects...');
       const response = await GraphQLService.request<ListProjectsResponse>(query, {}, 'ListProjects');
+      console.log('Successfully received projects:', response.listProjects?.length || 0);
       return response.listProjects || [];
     } catch (error) {
       console.error('Failed to list projects:', error);
-      throw new Error('Failed to fetch projects. Please try again.');
+      
+      // Provide user-friendly error message
+      if (error instanceof Error && error.message.includes('resolver configuration')) {
+        throw new Error('GraphQL API configuration error. The backend resolver needs to be fixed by the developer.');
+      }
+      
+      throw new Error('Failed to fetch projects. Please try again or contact support if the issue persists.');
     }
   }
 
