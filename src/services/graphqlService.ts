@@ -59,7 +59,7 @@ export class GraphQLService {
     operationName?: string
   ): Promise<T> {
     try {
-      const headers = await this.getAuthHeaders();
+      const headers = await GraphQLService.getAuthHeaders();
       
       const requestBody: GraphQLRequest = {
         query,
@@ -68,12 +68,12 @@ export class GraphQLService {
       };
 
       console.log('Making GraphQL request:', {
-        endpoint: this.APPSYNC_ENDPOINT,
+        endpoint: GraphQLService.APPSYNC_ENDPOINT,
         operation: operationName || 'unknown',
         variables
       });
 
-      const response = await fetch(this.APPSYNC_ENDPOINT, {
+      const response = await fetch(GraphQLService.APPSYNC_ENDPOINT, {
         method: 'POST',
         headers,
         body: JSON.stringify(requestBody)
@@ -116,7 +116,7 @@ export class GraphQLService {
     `;
 
     try {
-      const response = await this.request<ListProjectsResponse>(query, {}, 'ListProjects');
+      const response = await GraphQLService.request<ListProjectsResponse>(query, {}, 'ListProjects');
       return response.listProjects || [];
     } catch (error) {
       console.error('Failed to list projects:', error);
@@ -144,7 +144,7 @@ export class GraphQLService {
     };
 
     try {
-      const response = await this.request<CreateProjectResponse>(
+      const response = await GraphQLService.request<CreateProjectResponse>(
         mutation, 
         variables, 
         'CreateProject'
@@ -177,7 +177,7 @@ export class GraphQLService {
     };
 
     try {
-      const response = await this.request<{ updateProject: Project }>(
+      const response = await GraphQLService.request<{ updateProject: Project }>(
         mutation, 
         variables, 
         'UpdateProject'
@@ -202,7 +202,7 @@ export class GraphQLService {
     const variables = { id };
 
     try {
-      await this.request<{ deleteProject: { id: string } }>(
+      await GraphQLService.request<{ deleteProject: { id: string } }>(
         mutation, 
         variables, 
         'DeleteProject'
@@ -231,7 +231,7 @@ export class GraphQLService {
     const variables = { id };
 
     try {
-      const response = await this.request<{ getProject: Project }>(
+      const response = await GraphQLService.request<{ getProject: Project }>(
         query, 
         variables, 
         'GetProject'
