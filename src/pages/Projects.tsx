@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Loader, Plus, Edit2, Trash2, Database, RefreshCw } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Loader, Plus, Edit2, Trash2, Database, RefreshCw, Bug, ChevronDown, ChevronUp, Copy } from 'lucide-react';
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects';
 import { Project } from '@/services/graphqlService';
 import { toast } from '@/components/ui/sonner';
@@ -18,15 +18,111 @@ interface ProjectFormData {
   description: string;
 }
 
+interface DebugLog {
+  timestamp: string;
+  type: 'error' | 'request' | 'response' | 'info';
+  message: string;
+  data?: any;
+}
+
 function ProjectsContent() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [formData, setFormData] = useState<ProjectFormData>({ name: '', description: '' });
+  const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const [debugLogs, setDebugLogs] = useState<DebugLog[]>([]);
 
   const { data: projects, isLoading, error, refetch } = useProjects();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
+
+  // Capture console errors and logs
+  useEffect(() => {
+    const originalConsoleError = console.error;
+    const originalConsoleLog = console.log;
+    const originalConsoleInfo = console.info;
+
+    console.error = (...args) => {
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)).join(' ');
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'error',
+        message,
+        data: args
+      }]);
+      originalConsoleError(...args);
+    };
+
+    console.log = (...args) => {
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)).join(' ');
+      if (message.includes('GraphQL') || message.includes('error') || message.includes('request') || message.includes('response')) {
+        setDebugLogs(prev => [...prev, {
+          timestamp: new Date().toISOString(),
+          type: message.toLowerCase().includes('error') ? 'error' : 
+                message.toLowerCase().includes('request') ? 'request' :
+                message.toLowerCase().includes('response') ? 'response' : 'info',
+          message,
+          data: args
+        }]);
+      }
+      originalConsoleLog(...args);
+    };
+
+    console.info = (...args) => {
+      const message = args.map(arg => typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)).join(' ');
+      if (message.includes('GraphQL') || message.includes('Session') || message.includes('Making')) {
+        setDebugLogs(prev => [...prev, {
+          timestamp: new Date().toISOString(),
+          type: 'info',
+          message,
+          data: args
+        }]);
+      }
+      originalConsoleInfo(...args);
+    };
+
+    return () => {
+      console.error = originalConsoleError;
+      console.log = originalConsoleLog;
+      console.info = originalConsoleInfo;
+    };
+  }, []);
+
+  // Add error to debug logs
+  useEffect(() => {
+    if (error) {
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'error',
+        message: `Query Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        data: error
+      }]);
+    }
+  }, [error]);
+
+  const copyDebugInfo = () => {
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : error,
+      logs: debugLogs,
+      projectsData: projects,
+      isLoading,
+      mutations: {
+        createPending: createProject.isPending,
+        updatePending: updateProject.isPending,
+        deletePending: deleteProject.isPending
+      }
+    };
+    
+    navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
+    toast.success('Debug info copied to clipboard');
+  };
+
+  const clearDebugLogs = () => {
+    setDebugLogs([]);
+    toast.success('Debug logs cleared');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,29 +190,77 @@ function ProjectsContent() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
-              Failed to Load Projects
-            </h2>
-            <p className="text-red-600 dark:text-red-300 mb-4">
-              {error instanceof Error ? error.message : 'An unknown error occurred'}
-            </p>
-            <Button onClick={() => refetch()} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Debug Window */}
+      <Collapsible open={isDebugOpen} onOpenChange={setIsDebugOpen} className="mb-6">
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" className="w-full justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Bug className="h-4 w-4" />
+              Debug Window ({debugLogs.length} logs)
+              {error && <Badge variant="destructive">Error</Badge>}
+            </div>
+            {isDebugOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <Card className="border-2 border-red-200 dark:border-red-800">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="text-red-600 dark:text-red-400">GraphQL Debug Information</span>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={copyDebugInfo}>
+                    <Copy className="h-4 w-4 mr-1" />
+                    Copy All
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={clearDebugLogs}>
+                    Clear Logs
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
+                  <h4 className="font-semibold text-red-800 dark:text-red-200 mb-2">Current Error:</h4>
+                  <pre className="text-sm text-red-600 dark:text-red-300 whitespace-pre-wrap">
+                    {error instanceof Error ? error.message : JSON.stringify(error, null, 2)}
+                  </pre>
+                </div>
+              )}
+              
+              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg max-h-96 overflow-y-auto">
+                <h4 className="font-semibold mb-2">Console Logs:</h4>
+                {debugLogs.length === 0 ? (
+                  <p className="text-gray-500">No debug logs captured yet</p>
+                ) : (
+                  <div className="space-y-2">
+                    {debugLogs.slice(-20).map((log, index) => (
+                      <div key={index} className={`text-xs p-2 rounded ${
+                        log.type === 'error' ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200' :
+                        log.type === 'request' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200' :
+                        log.type === 'response' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' :
+                        'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
+                      }`}>
+                        <div className="font-mono text-xs text-gray-500 mb-1">
+                          {new Date(log.timestamp).toLocaleTimeString()} - {log.type.toUpperCase()}
+                        </div>
+                        <pre className="whitespace-pre-wrap break-words">{log.message}</pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="text-xs text-gray-500 p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                <p><strong>Instructions:</strong> Copy the debug info above and paste it to ChatGPT with your question. This contains all the error details, network requests, and console logs needed for debugging.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </CollapsibleContent>
+      </Collapsible>
+
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Projects</h1>
@@ -191,7 +335,22 @@ function ProjectsContent() {
         </Dialog>
       </div>
 
-      {!projects || projects.length === 0 ? (
+      {error ? (
+        <div className="text-center">
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+              Failed to Load Projects
+            </h2>
+            <p className="text-red-600 dark:text-red-300 mb-4">
+              {error instanceof Error ? error.message : 'An unknown error occurred'}
+            </p>
+            <Button onClick={() => refetch()} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      ) : !projects || projects.length === 0 ? (
         <div className="text-center py-12">
           <Database className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
