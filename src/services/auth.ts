@@ -94,6 +94,14 @@ export const Auth = {
         userPoolWebClientId: config.userPoolWebClientId
       });
 
+      // First, try to sign out any existing user to prevent UserAlreadyAuthenticatedException
+      try {
+        await signOut();
+        console.log("Successfully signed out existing user");
+      } catch (signOutError) {
+        console.log("No existing user to sign out (this is normal)");
+      }
+
       const { isSignedIn, nextStep } = await signIn({
         username: credentials.username,
         password: credentials.password,
