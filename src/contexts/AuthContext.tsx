@@ -1,5 +1,6 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { AuthService } from '@/services/authService';
+import { Auth } from '@/services/auth';
 import { getCognitoConfig, configureCognito } from '@/services/cognitoConfig';
 
 export interface AuthUser {
@@ -40,8 +41,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           configureCognito(cognitoConfig);
         }
 
-        // Check for existing authentication
-        const currentUser = await AuthService.getCurrentUser();
+        // Check for existing authentication using the same Auth service
+        const currentUser = await Auth.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
         console.error('Error initializing authentication:', error);
@@ -57,7 +58,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = async (username: string, password: string) => {
     setIsLoading(true);
     try {
-      const user = await AuthService.signIn(username, password);
+      const user = await Auth.signIn({ username, password });
       setUser(user);
     } finally {
       setIsLoading(false);
@@ -67,7 +68,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signUp = async (username: string, password: string, email: string, name?: string, attributes?: Record<string, string>) => {
     setIsLoading(true);
     try {
-      const user = await AuthService.signUp(username, password, email, name, attributes);
+      const user = await Auth.signUp({ username, password, email, name, attributes });
       setUser(user);
     } finally {
       setIsLoading(false);
@@ -77,7 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signOut = async () => {
     setIsLoading(true);
     try {
-      await AuthService.signOut();
+      await Auth.signOut();
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -87,8 +88,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const forgotPassword = async (email: string) => {
     setIsLoading(true);
     try {
-      // Implementation would go here
-      console.log('Forgot password for:', email);
+      await Auth.forgotPassword(email);
     } finally {
       setIsLoading(false);
     }
@@ -97,8 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const resetPassword = async (email: string, code: string, newPassword: string) => {
     setIsLoading(true);
     try {
-      // Implementation would go here
-      console.log('Reset password for:', email);
+      await Auth.resetPassword(email, code, newPassword);
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +106,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateUserAttributes = async (attributes: Record<string, string>) => {
     setIsLoading(true);
     try {
-      // Implementation would go here
+      await Auth.updateUserAttributes(attributes);
       if (user) {
         setUser({
           ...user,
