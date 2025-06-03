@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Loader, Plus, Edit2, Trash2, Database, RefreshCw, Bug, ChevronDown, ChevronUp, Copy, Terminal, TestTube } from 'lucide-react';
+import { Loader, Plus, Edit2, Trash2, Database, RefreshCw, Bug, ChevronDown, ChevronUp, Copy, Terminal, TestTube, Zap } from 'lucide-react';
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects';
 import { Project } from '@/services/graphqlService';
 import { toast } from '@/components/ui/sonner';
@@ -187,6 +187,87 @@ function ProjectsContent() {
     }
   };
 
+  // Add new function to test createProject mutation directly
+  const testCreateProjectMutation = async () => {
+    try {
+      const { getCurrentUser, fetchAuthSession } = await import('aws-amplify/auth');
+      const currentUser = await getCurrentUser();
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString() || '';
+      
+      const testProjectData = {
+        name: `Test Project ${Date.now()}`,
+        description: 'This is a test project created from debug window'
+      };
+
+      const createMutation = `
+        mutation CreateProject($name: String!, $description: String) {
+          createProject(name: $name, description: $description) {
+            id
+            name
+            description
+          }
+        }
+      `;
+
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'info',
+        message: `Testing createProject mutation with data: ${JSON.stringify(testProjectData)}`,
+        data: testProjectData
+      }]);
+
+      const response = await fetch('https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token
+        },
+        body: JSON.stringify({
+          query: createMutation,
+          variables: testProjectData
+        })
+      });
+
+      const responseText = await response.text();
+      
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: response.ok ? 'info' : 'error',
+        message: `CreateProject test result:\nStatus: ${response.status}\nResponse: ${responseText}`,
+        data: { 
+          status: response.status, 
+          ok: response.ok, 
+          response: responseText,
+          mutation: createMutation,
+          variables: testProjectData
+        }
+      }]);
+
+      if (response.ok) {
+        const result = JSON.parse(responseText);
+        if (result.errors) {
+          toast.error(`CreateProject has errors: ${result.errors.map(e => e.message).join(', ')}`);
+        } else {
+          toast.success('CreateProject mutation works! Check debug logs for details.');
+          // Trigger a refetch to see if the new project appears
+          refetch();
+        }
+      } else {
+        toast.error(`CreateProject failed with status: ${response.status}`);
+      }
+      
+    } catch (error) {
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'error',
+        message: `CreateProject test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        data: error
+      }]);
+      toast.error('CreateProject test failed - check debug logs');
+    }
+  };
+
   const copyDebugInfo = () => {
     const debugInfo = {
       timestamp: new Date().toISOString(),
@@ -304,11 +385,15 @@ function ProjectsContent() {
           <Card className="border-2 border-red-200 dark:border-red-800">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span className="text-red-600 dark:text-red-400">GraphQL Debug & Token Testing</span>
+                <span className="text-red-600 dark:text-red-400">GraphQL Debug & Mutation Testing</span>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={testTokenManually}>
                     <TestTube className="h-4 w-4 mr-1" />
-                    Test Token
+                    Test Query
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={testCreateProjectMutation}>
+                    <Zap className="h-4 w-4 mr-1" />
+                    Test Create
                   </Button>
                   <Button size="sm" variant="outline" onClick={copyCurlCommand}>
                     <Terminal className="h-4 w-4 mr-1" />
@@ -335,12 +420,13 @@ function ProjectsContent() {
               )}
               
               <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Token Testing Instructions:</h4>
+                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Mutation vs Query Testing:</h4>
                 <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
-                  <li>Click "Test Token" to verify authentication works</li>
-                  <li>Click "Copy CURL" to get the curl command for manual testing</li>
-                  <li>Run the curl command in your terminal to test outside the app</li>
-                  <li>If curl returns 401: token issue. If same error: resolver issue.</li>
+                  <li>Click "Test Query" to test listProjects (currently failing)</li>
+                  <li>Click "Test Create" to test createProject mutation</li>
+                  <li>Compare the responses to see which resolvers work</li>
+                  <li>If Create works but Query fails: different resolver configurations</li>
+                  <li>If both fail the same way: general AppSync issue</li>
                 </ol>
               </div>
               
