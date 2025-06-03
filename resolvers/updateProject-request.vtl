@@ -1,0 +1,35 @@
+
+{
+    "version": "2017-02-28",
+    "operation": "UpdateItem",
+    "tableName": "ServerlessVolunteerAppStack-projects9614A9BB-1R56LYOCSM788",
+    "key": {
+        "it_key": {
+            "S": "$ctx.args.id"
+        }
+    },
+    "update": {
+        "expression": "SET #name = :name"
+        #if($ctx.args.description)
+            + ", #description = :description"
+        #end,
+        "expressionNames": {
+            "#name": "name"
+            #if($ctx.args.description)
+            ,
+            "#description": "description"
+            #end
+        },
+        "expressionValues": {
+            ":name": {
+                "S": "$ctx.args.name"
+            }
+            #if($ctx.args.description)
+            ,
+            ":description": {
+                "S": "$ctx.args.description"
+            }
+            #end
+        }
+    }
+}

@@ -1,0 +1,11 @@
+
+#if($ctx.error)
+    $util.error($ctx.error.message, $ctx.error.type)
+#end
+
+## Map DynamoDB response to GraphQL Project type
+{
+    "id": "$ctx.result.it_key.S",
+    "name": "$ctx.result.name.S",
+    "description": $util.defaultIfNull($ctx.result.description.S, null)
+}

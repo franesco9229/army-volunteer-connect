@@ -1,0 +1,28 @@
+
+## Generate a unique ID for the new project
+#set($projectId = $util.autoId())
+
+{
+    "version": "2017-02-28",
+    "operation": "PutItem",
+    "tableName": "ServerlessVolunteerAppStack-projects9614A9BB-1R56LYOCSM788",
+    "key": {
+        "it_key": {
+            "S": "$projectId"
+        }
+    },
+    "attributeValues": {
+        "it_key": {
+            "S": "$projectId"
+        },
+        "name": {
+            "S": "$ctx.args.name"
+        }
+        #if($ctx.args.description)
+        ,
+        "description": {
+            "S": "$ctx.args.description"
+        }
+        #end
+    }
+}
