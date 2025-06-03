@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Loader, Plus, Edit2, Trash2, Database, RefreshCw, Bug, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { Loader, Plus, Edit2, Trash2, Database, RefreshCw, Bug, ChevronDown, ChevronUp, Copy, Terminal, TestTube } from 'lucide-react';
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects';
 import { Project } from '@/services/graphqlService';
 import { toast } from '@/components/ui/sonner';
@@ -31,6 +31,7 @@ function ProjectsContent() {
   const [formData, setFormData] = useState<ProjectFormData>({ name: '', description: '' });
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const [debugLogs, setDebugLogs] = useState<DebugLog[]>([]);
+  const [currentToken, setCurrentToken] = useState<string>('');
 
   const { data: projects, isLoading, error, refetch } = useProjects();
   const createProject = useCreateProject();
@@ -101,6 +102,91 @@ function ProjectsContent() {
     }
   }, [error]);
 
+  // New function to get current token for manual testing
+  const getCurrentTokenForTesting = async () => {
+    try {
+      const { getCurrentUser, fetchAuthSession } = await import('aws-amplify/auth');
+      const currentUser = await getCurrentUser();
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString() || '';
+      setCurrentToken(token);
+      
+      const curlCommand = `curl -X POST \\
+  https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: ${token}" \\
+  -d '{"query":"query ListProjects { listProjects { id name description } }"}'`;
+      
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'info',
+        message: `CURL Command for manual testing:\n${curlCommand}`,
+        data: { token: token.substring(0, 50) + '...', curlCommand }
+      }]);
+      
+      return { token, curlCommand };
+    } catch (error) {
+      console.error('Failed to get token:', error);
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'error',
+        message: `Failed to get current token: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        data: error
+      }]);
+      return null;
+    }
+  };
+
+  // Function to test token validity
+  const testTokenManually = async () => {
+    try {
+      const tokenInfo = await getCurrentTokenForTesting();
+      if (!tokenInfo) return;
+      
+      // Make a direct fetch request to test
+      const response = await fetch('https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': tokenInfo.token
+        },
+        body: JSON.stringify({
+          query: `query ListProjects { listProjects { id name description } }`
+        })
+      });
+
+      const responseText = await response.text();
+      
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: response.ok ? 'info' : 'error',
+        message: `Manual token test result:\nStatus: ${response.status}\nResponse: ${responseText}`,
+        data: { 
+          status: response.status, 
+          ok: response.ok, 
+          response: responseText,
+          headers: Object.fromEntries(response.headers.entries())
+        }
+      }]);
+
+      if (response.status === 401) {
+        toast.error('Token is invalid or expired');
+      } else if (response.status === 200) {
+        toast.success('Token is valid, issue is in the resolver');
+      } else {
+        toast.error(`Unexpected status: ${response.status}`);
+      }
+      
+    } catch (error) {
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'error',
+        message: `Manual token test failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        data: error
+      }]);
+    }
+  };
+
   const copyDebugInfo = () => {
     const debugInfo = {
       timestamp: new Date().toISOString(),
@@ -112,11 +198,21 @@ function ProjectsContent() {
         createPending: createProject.isPending,
         updatePending: updateProject.isPending,
         deletePending: deleteProject.isPending
-      }
+      },
+      currentToken: currentToken ? currentToken.substring(0, 50) + '...' : 'No token captured',
+      appSyncEndpoint: 'https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql'
     };
     
     navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
     toast.success('Debug info copied to clipboard');
+  };
+
+  const copyCurlCommand = async () => {
+    const tokenInfo = await getCurrentTokenForTesting();
+    if (tokenInfo) {
+      navigator.clipboard.writeText(tokenInfo.curlCommand);
+      toast.success('CURL command copied to clipboard');
+    }
   };
 
   const clearDebugLogs = () => {
@@ -192,13 +288,13 @@ function ProjectsContent() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Debug Window */}
+      {/* Enhanced Debug Window */}
       <Collapsible open={isDebugOpen} onOpenChange={setIsDebugOpen} className="mb-6">
         <CollapsibleTrigger asChild>
           <Button variant="outline" className="w-full justify-between mb-4">
             <div className="flex items-center gap-2">
               <Bug className="h-4 w-4" />
-              Debug Window ({debugLogs.length} logs)
+              Advanced Debug Console ({debugLogs.length} logs)
               {error && <Badge variant="destructive">Error</Badge>}
             </div>
             {isDebugOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -208,8 +304,16 @@ function ProjectsContent() {
           <Card className="border-2 border-red-200 dark:border-red-800">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span className="text-red-600 dark:text-red-400">GraphQL Debug Information</span>
+                <span className="text-red-600 dark:text-red-400">GraphQL Debug & Token Testing</span>
                 <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={testTokenManually}>
+                    <TestTube className="h-4 w-4 mr-1" />
+                    Test Token
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={copyCurlCommand}>
+                    <Terminal className="h-4 w-4 mr-1" />
+                    Copy CURL
+                  </Button>
                   <Button size="sm" variant="outline" onClick={copyDebugInfo}>
                     <Copy className="h-4 w-4 mr-1" />
                     Copy All
@@ -230,10 +334,20 @@ function ProjectsContent() {
                 </div>
               )}
               
+              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">Token Testing Instructions:</h4>
+                <ol className="text-sm text-blue-700 dark:text-blue-300 space-y-1 list-decimal list-inside">
+                  <li>Click "Test Token" to verify authentication works</li>
+                  <li>Click "Copy CURL" to get the curl command for manual testing</li>
+                  <li>Run the curl command in your terminal to test outside the app</li>
+                  <li>If curl returns 401: token issue. If same error: resolver issue.</li>
+                </ol>
+              </div>
+              
               <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg max-h-96 overflow-y-auto">
-                <h4 className="font-semibold mb-2">Console Logs:</h4>
+                <h4 className="font-semibold mb-2">Console Logs & Test Results:</h4>
                 {debugLogs.length === 0 ? (
-                  <p className="text-gray-500">No debug logs captured yet</p>
+                  <p className="text-gray-500">No debug logs captured yet. Click "Test Token" to start debugging.</p>
                 ) : (
                   <div className="space-y-2">
                     {debugLogs.slice(-20).map((log, index) => (
@@ -254,7 +368,13 @@ function ProjectsContent() {
               </div>
               
               <div className="text-xs text-gray-500 p-2 bg-gray-100 dark:bg-gray-800 rounded">
-                <p><strong>Instructions:</strong> Copy the debug info above and paste it to ChatGPT with your question. This contains all the error details, network requests, and console logs needed for debugging.</p>
+                <p><strong>Debug Process:</strong></p>
+                <ul className="list-disc list-inside space-y-1 mt-1">
+                  <li>Click "Test Token" to verify authentication works</li>
+                  <li>Copy all debug info and paste to ChatGPT with your question</li>
+                  <li>Include the CURL command result from your terminal</li>
+                  <li>Current error suggests resolver configuration issue, not token problem</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
