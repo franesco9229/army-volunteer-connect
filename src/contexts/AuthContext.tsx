@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Auth } from '@/services/auth';
-import { getCognitoConfig, configureCognito } from '@/services/cognitoConfig';
+import { getCognitoConfig, configureCognito, initializeCharityBackend } from '@/services/cognitoConfig';
 
 export interface AuthUser {
   id: string;
@@ -35,15 +34,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Initialize Cognito if configured
-        const cognitoConfig = getCognitoConfig();
-        if (cognitoConfig) {
-          configureCognito(cognitoConfig);
-        }
+        console.log('Initializing authentication with charity backend...');
+        
+        // Initialize charity backend configuration
+        initializeCharityBackend();
 
-        // Check for existing authentication using the same Auth service
+        // Check for existing authentication
         const currentUser = await Auth.getCurrentUser();
         setUser(currentUser);
+        
+        if (currentUser) {
+          console.log('User authenticated with charity backend:', currentUser);
+        }
       } catch (error) {
         console.error('Error initializing authentication:', error);
         setUser(null);
@@ -118,7 +120,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const isAdmin = !!user?.groups?.includes('admins');
+  const isAdmin = !!user?.groups?.includes('admins') || !!user?.groups?.includes('admin');
 
   return (
     <AuthContext.Provider

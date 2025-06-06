@@ -1,38 +1,18 @@
-// Generic API service for AWS Gateway integration
+
+// Updated API service for your charity's AWS Gateway integration
 import { Auth } from './auth';
 
-// AWS Service Configuration
+// Your charity's AWS Service Configuration
 export const AWS_CONFIG = {
-  API_GATEWAY_URL: import.meta.env.VITE_API_GATEWAY_URL || 'https://api.example.com',
-  REGION: import.meta.env.VITE_AWS_REGION || 'eu-west-2',
-  WEBSOCKET_URL: import.meta.env.VITE_WEBSOCKET_URL || 'wss://ws.example.com',
+  API_GATEWAY_URL: 'https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod',
+  REGION: 'eu-west-2',
   COGNITO: {
-    USER_POOL_ID: import.meta.env.VITE_COGNITO_USER_POOL_ID || 'eu-west-2_example',
-    CLIENT_ID: import.meta.env.VITE_COGNITO_CLIENT_ID || 'clientidexample',
-  },
-  LAMBDA: {
-    FUNCTION_PREFIX: import.meta.env.VITE_LAMBDA_PREFIX || 'sta-volunteer-',
+    USER_POOL_ID: 'eu-west-2_kQrUuZhh9',
+    CLIENT_ID: '5uasj2k09h4mlfqj6btopne207',
+    AUTHORIZER_ID: 'o87uiv'
   },
   DYNAMODB: {
-    TABLE_PREFIX: import.meta.env.VITE_DYNAMODB_PREFIX || 'sta-volunteer-',
-  },
-  SNS: {
-    TOPIC_PREFIX: import.meta.env.VITE_SNS_PREFIX || 'sta-volunteer-',
-  },
-  EVENTBRIDGE: {
-    BUS_NAME: import.meta.env.VITE_EVENTBRIDGE_BUS || 'sta-volunteer-events',
-  }
-};
-
-// External APIs Configuration
-export const EXTERNAL_APIS = {
-  JIRA: {
-    BASE_URL: import.meta.env.VITE_JIRA_API_URL || 'https://sta-volunteer.atlassian.net/rest/api/3',
-    PROJECT_KEY: import.meta.env.VITE_JIRA_PROJECT_KEY || 'STV',
-  },
-  HUBSPOT: {
-    BASE_URL: import.meta.env.VITE_HUBSPOT_API_URL || 'https://api.hubspot.com/crm/v3',
-    PORTAL_ID: import.meta.env.VITE_HUBSPOT_PORTAL_ID || '12345678',
+    PROJECTS_TABLE: 'ServerlessVolunteerAppStack-projects9614A9BB-1R56LYOCSM788',
   }
 };
 
@@ -44,18 +24,19 @@ export interface ApiOptions {
 }
 
 export const ApiService = {
-  // Generic API call function that integrates with AWS API Gateway
+  // API call function that integrates with your charity's AWS API Gateway
   callApi: async <T>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
     const { method = 'GET', body, headers = {}, requiresAuth = true } = options;
     
     let authHeaders = {};
     
-    // Add Authorization header with Cognito JWT token if authentication is required
+    // Add Authorization header with Cognito JWT token
     if (requiresAuth) {
       try {
         const token = await Auth.getCurrentSession();
         authHeaders = {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Amz-Security-Token': token // Additional header for AWS API Gateway
         };
       } catch (error) {
         console.error('Error getting authentication token:', error);
@@ -65,24 +46,33 @@ export const ApiService = {
     
     const defaultHeaders = {
       'Content-Type': 'application/json',
+      'Accept': 'application/json'
     };
     
     try {
+      console.log(`Making API call to: ${AWS_CONFIG.API_GATEWAY_URL}${endpoint}`);
+      
       const response = await fetch(`${AWS_CONFIG.API_GATEWAY_URL}${endpoint}`, {
         method,
         headers: { ...defaultHeaders, ...authHeaders, ...headers },
         body: body ? JSON.stringify(body) : undefined
       });
       
+      console.log(`API Response Status: ${response.status}`);
+      
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
+        console.error('API Error Response:', errorData);
         throw new Error(
           errorData?.message || 
+          errorData?.error || 
           `API request failed with status ${response.status}`
         );
       }
       
-      return await response.json();
+      const responseData = await response.json();
+      console.log('API Response Data:', responseData);
+      return responseData;
     } catch (error) {
       console.error("API request failed:", error);
       throw error;
@@ -105,50 +95,31 @@ export const ApiService = {
   delete: <T>(endpoint: string, options?: Omit<ApiOptions, 'method' | 'body'>): Promise<T> => {
     return ApiService.callApi<T>(endpoint, { ...options, method: 'DELETE' });
   },
-  
-  // WebSockets for real-time updates
-  connectWebSocket: (onMessage: (data: any) => void) => {
-    const socket = new WebSocket(AWS_CONFIG.WEBSOCKET_URL);
+
+  // Charity-specific API endpoints
+  charity: {
+    // Volunteer management endpoints
+    getVolunteers: (): Promise<any[]> => ApiService.get('/volunteers'),
+    getVolunteer: (id: string): Promise<any> => ApiService.get(`/volunteers/${id}`),
+    createVolunteer: (data: any): Promise<any> => ApiService.post('/volunteers', data),
+    updateVolunteer: (id: string, data: any): Promise<any> => ApiService.put(`/volunteers/${id}`, data),
     
-    socket.onopen = () => {
-      console.log('WebSocket connection established');
-    };
+    // Event registration endpoints
+    getEvents: (): Promise<any[]> => ApiService.get('/events'),
+    getEvent: (id: string): Promise<any> => ApiService.get(`/events/${id}`),
+    registerForEvent: (eventId: string, volunteerId: string): Promise<any> => 
+      ApiService.post(`/events/${eventId}/register`, { volunteerId }),
     
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        onMessage(data);
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
+    // User roles and permissions
+    getUserRoles: (): Promise<string[]> => ApiService.get('/user/roles'),
+    updateUserRoles: (roles: string[]): Promise<any> => ApiService.put('/user/roles', { roles }),
+    getAvailableRoles: (): Promise<any[]> => ApiService.get('/roles'),
     
-    socket.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    
-    socket.onclose = () => {
-      console.log('WebSocket connection closed');
-    };
-    
-    return {
-      send: (data: any) => {
-        if (socket.readyState === WebSocket.OPEN) {
-          socket.send(JSON.stringify(data));
-        } else {
-          console.error('WebSocket is not open');
-        }
-      },
-      close: () => socket.close()
-    };
-  },
-  
-  // EventBridge integration
-  triggerEvent: async (source: string, detailType: string, detail: any) => {
-    return ApiService.post('/events', {
-      Source: source,
-      DetailType: detailType,
-      Detail: JSON.stringify(detail)
-    });
+    // Projects (using your DynamoDB table)
+    getProjects: (): Promise<any[]> => ApiService.get('/projects'),
+    getProject: (id: string): Promise<any> => ApiService.get(`/projects/${id}`),
+    createProject: (data: any): Promise<any> => ApiService.post('/projects', data),
+    updateProject: (id: string, data: any): Promise<any> => ApiService.put(`/projects/${id}`, data),
+    deleteProject: (id: string): Promise<any> => ApiService.delete(`/projects/${id}`),
   }
 };

@@ -1,4 +1,4 @@
-// AWS Cognito Authentication Service
+// AWS Cognito Authentication Service for your charity backend
 // This would be replaced with actual AWS Amplify/Cognito SDK in production
 
 interface AuthUser {
@@ -24,8 +24,8 @@ interface SignUpCredentials {
   attributes?: Record<string, string>;
 }
 
-import { signIn, signUp, signOut, getCurrentUser, fetchAuthSession, confirmSignUp, resendSignUpCode } from 'aws-amplify/auth';
-import { getCognitoConfig } from './cognitoConfig';
+import { signIn, signUp, signOut, getCurrentUser, fetchAuthSession, confirmSignUp, resendSignUpCode, resetPassword, confirmResetPassword } from 'aws-amplify/auth';
+import { getCognitoConfig, initializeCharityBackend } from './cognitoConfig';
 
 // Mock users for demo purposes
 const MOCK_USERS = [
@@ -60,7 +60,12 @@ export const Auth = {
   currentUser: null as AuthUser | null,
   currentSession: null as string | null,
   
-  // Sign in with username/email and password using AWS Cognito or Mock
+  // Initialize with your charity's backend configuration
+  initialize: () => {
+    initializeCharityBackend();
+  },
+  
+  // Sign in with username/email and password using your Cognito setup
   signIn: async (credentials: SignInCredentials): Promise<AuthUser> => {
     console.log("Attempting sign in:", credentials);
     
@@ -86,15 +91,11 @@ export const Auth = {
       return mockUser;
     }
     
-    // Use real Cognito authentication
+    // Use your charity's Cognito authentication
     try {
-      console.log("Attempting Cognito sign in with config:", {
-        region: config.region,
-        userPoolId: config.userPoolId,
-        userPoolWebClientId: config.userPoolWebClientId
-      });
+      console.log("Attempting Cognito sign in with your charity backend");
 
-      // First, try to sign out any existing user to prevent UserAlreadyAuthenticatedException
+      // Sign out any existing user first
       try {
         await signOut();
         console.log("Successfully signed out existing user");
@@ -123,23 +124,23 @@ export const Auth = {
         Auth.currentUser = user;
         Auth.currentSession = session.tokens?.idToken?.toString() || null;
         
+        console.log("Successfully signed in to charity backend:", user);
         return user;
       } else {
         throw new Error(`Sign in incomplete. Next step: ${nextStep.signInStep}`);
       }
     } catch (error) {
-      console.error("Cognito sign in failed with detailed error:", error);
+      console.error("Charity Cognito sign in failed:", error);
       
-      // Log specific error details to help with debugging
       if (error instanceof Error) {
-        console.error("Error message:", error.message);
-        console.error("Error name:", error.name);
-        console.error("Error stack:", error.stack);
+        console.error("Error details:", {
+          message: error.message,
+          name: error.name,
+          stack: error.stack
+        });
         
-        // Check for specific Cognito errors
+        // Handle specific Cognito errors
         if (error.message.includes('SECRET_HASH')) {
-          console.error("❌ SECRET_HASH error detected. Your Cognito app client is configured with a client secret.");
-          console.error("🔧 To fix this: Go to AWS Cognito Console → User Pools → App clients → Edit your app client → Uncheck 'Generate client secret'");
           throw new Error("Cognito configuration error: Client secret detected. Please configure your app client without a secret for web applications.");
         }
         
@@ -410,3 +411,6 @@ export const Auth = {
     }
   }
 };
+
+// Initialize the charity backend on module load
+Auth.initialize();
