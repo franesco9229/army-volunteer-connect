@@ -13,6 +13,22 @@ export const AWS_CONFIG = {
   },
   DYNAMODB: {
     PROJECTS_TABLE: 'ServerlessVolunteerAppStack-projects9614A9BB-1R56LYOCSM788',
+    TABLE_PREFIX: 'ServerlessVolunteerAppStack-'
+  },
+  SNS: {
+    TOPIC_PREFIX: 'charity-volunteer-'
+  }
+};
+
+// External API configurations for integrations
+export const EXTERNAL_APIS = {
+  JIRA: {
+    BASE_URL: 'https://your-org.atlassian.net',
+    PROJECT_KEY: 'VOL'
+  },
+  HUBSPOT: {
+    BASE_URL: 'https://api.hubapi.com',
+    PORTAL_ID: 'your-portal-id'
   }
 };
 
