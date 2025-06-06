@@ -35,14 +35,16 @@ export const configureCognito = (config: CognitoConfig) => {
         }
       }
     },
-    API: config.apiGatewayUrl ? {
-      REST: {
-        'charity-api': {
-          endpoint: config.apiGatewayUrl,
-          region: config.region
+    ...(config.apiGatewayUrl && {
+      API: {
+        REST: {
+          'charity-api': {
+            endpoint: config.apiGatewayUrl,
+            region: config.region
+          }
         }
       }
-    } : undefined
+    })
   });
 };
 
