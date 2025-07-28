@@ -10,7 +10,7 @@ interface CognitoConfig {
 }
 
 export const configureCognito = (config: CognitoConfig) => {
-  Amplify.configure({
+  const amplifyConfig: any = {
     Auth: {
       Cognito: {
         userPoolId: config.userPoolId,
@@ -19,7 +19,7 @@ export const configureCognito = (config: CognitoConfig) => {
           email: true,
           username: true
         },
-        signUpVerificationMethod: 'code',
+        signUpVerificationMethod: 'code' as const,
         userAttributes: {
           email: {
             required: true,
@@ -45,7 +45,9 @@ export const configureCognito = (config: CognitoConfig) => {
         }
       }
     })
-  });
+  };
+  
+  Amplify.configure(amplifyConfig);
 };
 
 // Your specific charity backend configuration
