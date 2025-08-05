@@ -1,10 +1,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { GraphQLService, Project } from '@/services/graphqlService';
+import { GraphQLService, Project } from '@/services/apiGatewayService';
 import { toast } from '@/components/ui/sonner';
 
 export function useProjects() {
-  return useQuery({
+  return useQuery<Project[]>({
     queryKey: ['projects'],
     queryFn: GraphQLService.listProjects,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -14,7 +14,7 @@ export function useProjects() {
 }
 
 export function useProject(id: string) {
-  return useQuery({
+  return useQuery<Project | null>({
     queryKey: ['project', id],
     queryFn: () => GraphQLService.getProject(id),
     enabled: !!id,
@@ -25,10 +25,10 @@ export function useProject(id: string) {
 export function useCreateProject() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Project, Error, { name: string; description?: string }>({
     mutationFn: ({ name, description }: { name: string; description?: string }) =>
       GraphQLService.createProject(name, description),
-    onSuccess: (newProject) => {
+    onSuccess: (newProject: Project) => {
       // Invalidate and refetch projects list
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success(`Project "${newProject.name}" created successfully!`);
@@ -43,10 +43,10 @@ export function useCreateProject() {
 export function useUpdateProject() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Project, Error, { id: string; name?: string; description?: string }>({
     mutationFn: ({ id, name, description }: { id: string; name?: string; description?: string }) =>
       GraphQLService.updateProject(id, name, description),
-    onSuccess: (updatedProject) => {
+    onSuccess: (updatedProject: Project) => {
       // Invalidate projects list and the specific project
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', updatedProject.id] });
@@ -62,7 +62,7 @@ export function useUpdateProject() {
 export function useDeleteProject() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<boolean, Error, string>({
     mutationFn: GraphQLService.deleteProject,
     onSuccess: () => {
       // Invalidate projects list

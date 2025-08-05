@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Loader, Plus, Edit2, Trash2, Database, RefreshCw, Bug, ChevronDown, ChevronUp, Copy, Terminal, TestTube, Zap } from 'lucide-react';
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/hooks/useProjects';
-import { Project } from '@/services/graphqlService';
+import { Project } from '@/services/apiGatewayService';
 import { toast } from '@/components/ui/sonner';
 import AppLayout from '@/components/layout/AppLayout';
 
@@ -111,11 +111,10 @@ function ProjectsContent() {
       const token = session.tokens?.idToken?.toString() || '';
       setCurrentToken(token);
       
-      const curlCommand = `curl -X POST \\
-  https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql \\
+      const curlCommand = `curl -X GET \\
+  https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod/projects \\
   -H "Content-Type: application/json" \\
-  -H "Authorization: ${token}" \\
-  -d '{"query":"query ListProjects { listProjects { id name description } }"}'`;
+  -H "Authorization: Bearer ${token}"`;
       
       setDebugLogs(prev => [...prev, {
         timestamp: new Date().toISOString(),
@@ -144,15 +143,12 @@ function ProjectsContent() {
       if (!tokenInfo) return;
       
       // Make a direct fetch request to test
-      const response = await fetch('https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql', {
-        method: 'POST',
+      const response = await fetch('https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod/projects', {
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': tokenInfo.token
-        },
-        body: JSON.stringify({
-          query: `query ListProjects { listProjects { id name description } }`
-        })
+          'Authorization': `Bearer ${tokenInfo.token}`
+        }
       });
 
       const responseText = await response.text();
@@ -217,16 +213,13 @@ function ProjectsContent() {
         data: testProjectData
       }]);
 
-      const response = await fetch('https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql', {
+      const response = await fetch('https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': token
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          query: createMutation,
-          variables: testProjectData
-        })
+        body: JSON.stringify(testProjectData)
       });
 
       const responseText = await response.text();
@@ -281,7 +274,7 @@ function ProjectsContent() {
         deletePending: deleteProject.isPending
       },
       currentToken: currentToken ? currentToken.substring(0, 50) + '...' : 'No token captured',
-      appSyncEndpoint: 'https://mxd7o3seznfajn6qxcvqnczzsm.appsync-api.eu-west-2.amazonaws.com/graphql'
+      apiGatewayEndpoint: 'https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod'
     };
     
     navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
@@ -360,7 +353,7 @@ function ProjectsContent() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Loader className="h-8 w-8 animate-spin mx-auto mb-4 text-sta-purple" />
-            <p className="text-gray-600 dark:text-gray-400">Loading projects from GraphQL API...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading projects from REST API...</p>
           </div>
         </div>
       </div>
@@ -385,7 +378,7 @@ function ProjectsContent() {
           <Card className="border-2 border-red-200 dark:border-red-800">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span className="text-red-600 dark:text-red-400">GraphQL Debug & Mutation Testing</span>
+                <span className="text-red-600 dark:text-red-400">API Gateway Debug & Testing</span>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={testTokenManually}>
                     <TestTube className="h-4 w-4 mr-1" />
@@ -471,12 +464,12 @@ function ProjectsContent() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Projects</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage your projects via AWS AppSync GraphQL API
+            Manage your projects via AWS API Gateway + Lambda
           </p>
           <div className="flex items-center gap-2 mt-2">
             <Badge variant="outline" className="text-xs">
               <Database className="h-3 w-3 mr-1" />
-              GraphQL + DynamoDB
+              REST API + DynamoDB
             </Badge>
           </div>
         </div>
@@ -575,7 +568,7 @@ function ProjectsContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
+          {projects?.map((project) => (
             <Card key={project.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
