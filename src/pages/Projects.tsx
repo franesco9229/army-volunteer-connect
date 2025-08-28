@@ -112,7 +112,7 @@ function ProjectsContent() {
       setCurrentToken(token);
       
       const curlCommand = `curl -X GET \\
-  https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod/projects \\
+  https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev/projects \\
   -H "Content-Type: application/json" \\
   -H "Authorization: Bearer ${token}"`;
       
@@ -143,7 +143,7 @@ function ProjectsContent() {
       if (!tokenInfo) return;
       
       // Make a direct fetch request to test
-      const response = await fetch('https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod/projects', {
+      const response = await fetch('https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev/projects', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ function ProjectsContent() {
         data: testProjectData
       }]);
 
-      const response = await fetch('https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod/projects', {
+      const response = await fetch('https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -261,6 +261,98 @@ function ProjectsContent() {
     }
   };
 
+  // Function to create 2 test projects for backend testing
+  const createTwoMockProjects = async () => {
+    try {
+      const { getCurrentUser, fetchAuthSession } = await import('aws-amplify/auth');
+      const currentUser = await getCurrentUser();
+      const session = await fetchAuthSession();
+      const token = session.tokens?.idToken?.toString() || '';
+      
+      const mockProjects = [
+        {
+          name: 'Community Garden Project',
+          description: 'A volunteer initiative to create and maintain community gardens in urban areas. This project helps provide fresh produce to local communities while promoting environmental sustainability.'
+        },
+        {
+          name: 'Digital Literacy Program',
+          description: 'Teaching digital skills to seniors and underserved communities. Volunteers help people learn basic computer skills, internet safety, and how to use smartphones and tablets.'
+        }
+      ];
+
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'info',
+        message: `Creating 2 mock projects for testing: ${JSON.stringify(mockProjects, null, 2)}`,
+        data: mockProjects
+      }]);
+
+      const results = [];
+      
+      for (let i = 0; i < mockProjects.length; i++) {
+        const projectData = mockProjects[i];
+        
+        const response = await fetch('https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(projectData)
+        });
+
+        const responseText = await response.text();
+        
+        setDebugLogs(prev => [...prev, {
+          timestamp: new Date().toISOString(),
+          type: response.ok ? 'info' : 'error',
+          message: `Mock Project ${i + 1} result:\nStatus: ${response.status}\nResponse: ${responseText}`,
+          data: { 
+            projectIndex: i + 1,
+            status: response.status, 
+            ok: response.ok, 
+            response: responseText,
+            projectData
+          }
+        }]);
+
+        results.push({
+          success: response.ok,
+          status: response.status,
+          response: responseText,
+          project: projectData
+        });
+
+        // Wait a bit between requests
+        if (i < mockProjects.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
+      const successCount = results.filter(r => r.success).length;
+      
+      if (successCount === mockProjects.length) {
+        toast.success(`Successfully created ${successCount} mock projects! Check the Projects list.`);
+        // Trigger a refetch to see the new projects
+        refetch();
+      } else if (successCount > 0) {
+        toast.success(`Created ${successCount} out of ${mockProjects.length} mock projects. Check debug logs for details.`);
+        refetch();
+      } else {
+        toast.error('Failed to create any mock projects. Check debug logs for details.');
+      }
+      
+    } catch (error) {
+      setDebugLogs(prev => [...prev, {
+        timestamp: new Date().toISOString(),
+        type: 'error',
+        message: `Create mock projects failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        data: error
+      }]);
+      toast.error('Failed to create mock projects - check debug logs');
+    }
+  };
+
   const copyDebugInfo = () => {
     const debugInfo = {
       timestamp: new Date().toISOString(),
@@ -274,7 +366,7 @@ function ProjectsContent() {
         deletePending: deleteProject.isPending
       },
       currentToken: currentToken ? currentToken.substring(0, 50) + '...' : 'No token captured',
-      apiGatewayEndpoint: 'https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod'
+      apiGatewayEndpoint: 'https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev'
     };
     
     navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2));
@@ -387,6 +479,10 @@ function ProjectsContent() {
                   <Button size="sm" variant="outline" onClick={testCreateProjectMutation}>
                     <Zap className="h-4 w-4 mr-1" />
                     Test Create
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={createTwoMockProjects} className="bg-green-50 hover:bg-green-100 border-green-200">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create 2 Mock Projects
                   </Button>
                   <Button size="sm" variant="outline" onClick={copyCurlCommand}>
                     <Terminal className="h-4 w-4 mr-1" />
