@@ -194,17 +194,17 @@ export const Auth = {
         userPoolWebClientId: config.userPoolWebClientId
       });
       
-      // Generate a unique username to avoid email format restriction
-      const uniqueUsername = `user_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      // Use email as the Cognito username so you can find the user in the console and log in with email
+      const usernameForCognito = credentials.username;
       
       console.log("📝 Signup parameters:", {
-        username: uniqueUsername, // Use generated username
+        username: usernameForCognito,
         email: credentials.email,
         name: credentials.name || credentials.username.split('@')[0] || 'Demo User'
       });
 
       const { isSignUpComplete, userId, nextStep } = await signUp({
-        username: uniqueUsername, // Use generated username instead of email
+        username: usernameForCognito,
         password: credentials.password,
         options: {
           userAttributes: {
@@ -219,18 +219,18 @@ export const Auth = {
         isSignUpComplete,
         userId,
         nextStep: nextStep?.signUpStep,
-        generatedUsername: uniqueUsername
+        usernameUsed: usernameForCognito
       });
 
       if (isSignUpComplete) {
         // Auto sign in after successful signup
         return await Auth.signIn({
-          username: credentials.email, // Use email for sign in (alias)
+          username: credentials.username,
           password: credentials.password
         });
       } else {
-        // Store the generated username for verification
-        localStorage.setItem('temp_cognito_username', uniqueUsername);
+        // Store the username for verification
+        localStorage.setItem('temp_cognito_username', usernameForCognito);
         localStorage.setItem('temp_cognito_email', credentials.email);
         
         // Handle confirmation required
