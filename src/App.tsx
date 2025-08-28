@@ -21,45 +21,45 @@ import EmailVerificationPage from "./pages/EmailVerification";
 
 const queryClient = new QueryClient();
 
-// Protected route component for admin-only pages
-const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isAdmin } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: '/admin' }} />;
-  }
-  
-  if (!isAdmin) {
-    return <Navigate to="/opportunities" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-// Protected route component for authenticated users
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return <>{children}</>;
-};
-
-// Dashboard route that redirects unauthenticated users
-const DashboardRoute = () => {
-  const { isAuthenticated } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/opportunities" replace />;
-  }
-  
-  return <Index />;
-};
-
 // App routes component that uses auth context
 const AppRoutes = () => {
+  // Protected route component for admin-only pages
+  const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated, isAdmin } = useAuth();
+    
+    if (!isAuthenticated) {
+      return <Navigate to="/login" replace state={{ from: '/admin' }} />;
+    }
+    
+    if (!isAdmin) {
+      return <Navigate to="/opportunities" replace />;
+    }
+    
+    return <>{children}</>;
+  };
+
+  // Protected route component for authenticated users
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const { isAuthenticated } = useAuth();
+    
+    if (!isAuthenticated) {
+      return <Navigate to="/login" replace />;
+    }
+    
+    return <>{children}</>;
+  };
+
+  // Dashboard route that redirects unauthenticated users
+  const DashboardRoute = () => {
+    const { isAuthenticated } = useAuth();
+    
+    if (!isAuthenticated) {
+      return <Navigate to="/opportunities" replace />;
+    }
+    
+    return <Index />;
+  };
+
   return (
     <Routes>
       <Route path="/" element={<DashboardRoute />} />
