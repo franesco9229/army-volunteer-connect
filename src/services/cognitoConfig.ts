@@ -55,7 +55,7 @@ export const CHARITY_BACKEND_CONFIG: CognitoConfig = {
   region: 'eu-west-2',
   userPoolId: 'eu-west-2_kQrUuZhh9',
   userPoolWebClientId: '5uasj2k09h4mlfqj6btopne207',
-  apiGatewayUrl: 'https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod',
+  apiGatewayUrl: 'https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev',
   hostedUiDomain: 'https://eu-west-2kqruuzhh9.auth.eu-west-2.amazoncognito.com'
 };
 

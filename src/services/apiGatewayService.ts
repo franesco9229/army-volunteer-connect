@@ -26,7 +26,7 @@ interface VolunteerAccount {
 
 // Export for backward compatibility
 export const GraphQLService = class ProjectApiService {
-  private static readonly API_GATEWAY_ENDPOINT = 'https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod';
+  private static readonly API_GATEWAY_ENDPOINT = 'https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev';
 
   private static async getAuthHeaders(): Promise<Record<string, string>> {
     try {

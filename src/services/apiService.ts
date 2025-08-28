@@ -4,7 +4,7 @@ import { Auth } from './auth';
 
 // Your charity's AWS Service Configuration
 export const AWS_CONFIG = {
-  API_GATEWAY_URL: 'https://ve4jnzoz45.execute-api.eu-west-2.amazonaws.com/prod',
+  API_GATEWAY_URL: 'https://0x1xt3auh4.execute-api.us-west-2.amazonaws.com/dev',
   REGION: 'eu-west-2',
   COGNITO: {
     USER_POOL_ID: 'eu-west-2_kQrUuZhh9',
